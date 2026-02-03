@@ -1,0 +1,69 @@
+[build-system]
+requires = [
+    "setuptools>=42",
+    "versioneer",
+    "packaging",
+]
+build-backend = "build_requires"
+backend-path = [""]
+
+[project]
+name = "amulet-rocksdb"
+authors = [
+    {name = "James Clare"},
+]
+description = "A pybind11 wrapper for RocksDB."
+dynamic = ["version", "readme", "dependencies"]
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+[project.optional-dependencies]
+dev = [
+    "setuptools>=42",
+    "types-setuptools",
+    "versioneer",
+    "types-versioneer",
+    "packaging",
+    "wheel",
+    "pybind11_stubgen>=2.5.4",
+    "black>=22.3",
+    "isort",
+    "autoflake",
+    "mypy",
+    "types-pyinstaller",
+]
+
+[project.urls]
+Homepage = "https://www.amuletmc.com"
+Repository = "https://github.com/Amulet-Team/Amulet-RocksDB"
+Issues = "https://github.com/Amulet-Team/Amulet-RocksDB/issues"
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.package-data]
+"*" = [
+    "*Config.cmake",
+    "**/*.hpp",
+    "**/*.dll",
+    "**/*.so",
+    "**/*.dylib",
+    "**/*.lib",
+]
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.md"], content-type = "text/markdown"}
+
+[project.entry-points.pyinstaller40]
+hook-dirs = "amulet.rocksdb.__pyinstaller:get_hook_dirs"
+
+[tool.versioneer]
+VCS = "git"
+style = "pep440"
+versionfile_source = "src/amulet/rocksdb/_version.py"
+versionfile_build = "amulet/rocksdb/_version.py"
+tag_prefix = ""
+parentdir_prefix = "amulet_rocksdb-"
