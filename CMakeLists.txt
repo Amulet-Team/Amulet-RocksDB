@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.13)
 project(amulet_rocksdb LANGUAGES CXX)
 
 set(amulet_rocksdb_DIR ${CMAKE_CURRENT_LIST_DIR}/src/amulet/rocksdb CACHE PATH "")
-set(BUILD_AMULET_ROCKSDB_TESTS OFF CACHE BOOL "Should tests be built?")
 
 # Set C++20
 set(CMAKE_CXX_STANDARD 20)
@@ -67,9 +66,9 @@ list(REMOVE_ITEM SOURCES ${EXTENSION_SOURCES})
 list(REMOVE_ITEM HEADERS ${EXTENSION_HEADERS})
 
 # Add implementation
-add_library(amulet_rocksdb SHARED)
+add_library(amulet_rocksdb STATIC)
 set_target_properties(amulet_rocksdb PROPERTIES FOLDER "CPP")
-target_compile_definitions(amulet_rocksdb PRIVATE ExportAmuletRocksDB)
+target_compile_definitions(amulet_rocksdb PRIVATE AMULET_ROCKSDB_EXPORT= AMULET_ROCKSDB_EXPORT_EXCEPTION=)
 target_link_libraries(amulet_rocksdb PRIVATE rocksdb)
 target_include_directories(amulet_rocksdb PUBLIC ${SOURCE_PATH})
 target_sources(amulet_rocksdb PRIVATE ${SOURCES} ${HEADERS})
@@ -103,9 +102,4 @@ if(NOT DEFINED AMULET_ROCKSDB_EXT_DIR)
 endif()
 
 # Install
-install(TARGETS amulet_rocksdb DESTINATION ${amulet_rocksdb_DIR})
 install(TARGETS _rocksdb DESTINATION ${AMULET_ROCKSDB_EXT_DIR})
-
-if (BUILD_AMULET_ROCKSDB_TESTS)
-    add_subdirectory(tests)
-endif()
