@@ -152,7 +152,6 @@ def main() -> None:
     src_path = os.path.join(root_path, "src")
     amulet_rocksdb_path = get_package_dir("amulet.rocksdb")
     tests_path = os.path.join(root_path, "tests")
-    test_amulet_rocksdb_path = os.path.join(tests_path, "test_amulet_rocksdb")
 
     # make tests importable
     sys.path.append(tests_path)
@@ -160,7 +159,6 @@ def main() -> None:
     # out_dir, module_dir, module_name
     modules: list[tuple[str, str, str]] = [
         (src_path, amulet_rocksdb_path, "amulet.rocksdb"),
-        (tests_path, test_amulet_rocksdb_path, "test_amulet_rocksdb"),
     ]
 
     # Remove all existing stub files
