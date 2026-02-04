@@ -85,7 +85,7 @@ if(UNIX)
 endif()
 
 target_link_libraries(rocksdb PUBLIC libzstd_static)
-target_compile_definitions(rocksdb PRIVATE ZSTD=)
+target_compile_definitions(rocksdb PUBLIC ZSTD=)
 target_include_directories(rocksdb PUBLIC ${zstd_SOURCE_DIR}/lib)
 
 # Find C++ files
