@@ -5,7 +5,6 @@
 
 #include <rocksdb/db.h>
 
-#include "compact_range_options.hpp"
 #include "db.hpp"
 #include "options.hpp"
 #include "read_options.hpp"
