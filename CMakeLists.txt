@@ -56,6 +56,31 @@ FetchContent_MakeAvailable(rocksdb)
 #set_target_properties(zlibstatic PROPERTIES FOLDER "ThirdParty")
 set_target_properties(rocksdb PROPERTIES FOLDER "ThirdParty")
 
+if(UNIX)
+    FetchContent_Declare(
+      gflags
+      GIT_REPOSITORY https://github.com/gflags/gflags.git
+      GIT_TAG        33bb3461e10864b5406353d3a1fb7ff34c2314b8
+    )
+    FetchContent_MakeAvailable(gflags)
+    target_link_libraries(rocksdb PRIVATE gflags)
+endif()
+
+set(ZSTD_BUILD_STATIC ON CACHE BOOL "" FORCE)
+set(ZSTD_BUILD_SHARED OFF CACHE BOOL "" FORCE)
+set(ZSTD_BUILD_PROGRAMS  OFF CACHE BOOL "" FORCE)
+set(ZSTD_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(ZSTD_BUILD_CONTRIB OFF CACHE BOOL "" FORCE)
+set(ZSTD_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(ZSTD_LEGACY_SUPPORT OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(
+    zstd
+    GIT_REPOSITORY https://github.com/facebook/zstd
+    GIT_TAG f8745da6ff1ad1e7bab384bd1f9d742439278e99
+)
+FetchContent_MakeAvailable(zstd)
+target_link_libraries(rocksdb PRIVATE zstd)
+
 # Find C++ files
 file(REAL_PATH src SOURCE_PATH)
 file(GLOB_RECURSE EXTENSION_SOURCES LIST_DIRECTORIES false ${SOURCE_PATH}/amulet/*.py.cpp)
