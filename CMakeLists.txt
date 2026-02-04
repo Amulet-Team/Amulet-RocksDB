@@ -57,6 +57,7 @@ FetchContent_MakeAvailable(rocksdb)
 set_target_properties(rocksdb PROPERTIES FOLDER "ThirdParty")
 
 if(UNIX)
+    set(WITH_GFLAGS ON)
     FetchContent_Declare(
       gflags
       GIT_REPOSITORY https://github.com/gflags/gflags.git
@@ -73,7 +74,6 @@ set(ZSTD_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(ZSTD_BUILD_CONTRIB OFF CACHE BOOL "" FORCE)
 set(ZSTD_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(ZSTD_LEGACY_SUPPORT OFF CACHE BOOL "" FORCE)
-set(ZSTD ON CACHE BOOL "" FORCE)
 FetchContent_Declare(
     zstd
     GIT_REPOSITORY https://github.com/facebook/zstd
@@ -81,6 +81,8 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(zstd)
 target_link_libraries(rocksdb PRIVATE libzstd_static)
+target_compile_definitions(rocksdb PRIVATE ZSTD=)
+target_include_directories(rocksdb PUBLIC ${zstd_SOURCE_DIR}/lib)
 
 # Find C++ files
 file(REAL_PATH src SOURCE_PATH)
