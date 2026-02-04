@@ -73,13 +73,14 @@ set(ZSTD_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(ZSTD_BUILD_CONTRIB OFF CACHE BOOL "" FORCE)
 set(ZSTD_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(ZSTD_LEGACY_SUPPORT OFF CACHE BOOL "" FORCE)
+set(ZSTD ON CACHE BOOL "" FORCE)
 FetchContent_Declare(
     zstd
     GIT_REPOSITORY https://github.com/facebook/zstd
     GIT_TAG f8745da6ff1ad1e7bab384bd1f9d742439278e99
 )
 FetchContent_MakeAvailable(zstd)
-target_link_libraries(rocksdb PRIVATE zstd)
+target_link_libraries(rocksdb PRIVATE libzstd_static)
 
 # Find C++ files
 file(REAL_PATH src SOURCE_PATH)
