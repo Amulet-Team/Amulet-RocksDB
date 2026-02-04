@@ -33,8 +33,34 @@ if (NOT TARGET amulet_pybind11_extensions)
     find_package(amulet_pybind11_extensions CONFIG REQUIRED)
 endif()
 
-# Add implementation
+# Add dependencies
 include(FetchContent)
+
+set(ZSTD_BUILD_STATIC ON CACHE BOOL "" FORCE)
+set(ZSTD_BUILD_SHARED OFF CACHE BOOL "" FORCE)
+set(ZSTD_BUILD_PROGRAMS  OFF CACHE BOOL "" FORCE)
+set(ZSTD_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(ZSTD_BUILD_CONTRIB OFF CACHE BOOL "" FORCE)
+set(ZSTD_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(ZSTD_LEGACY_SUPPORT OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(
+    zstd
+    URL "https://github.com/facebook/zstd/releases/download/v1.5.7/zstd-1.5.7.tar.gz"
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    SOURCE_SUBDIR build/cmake
+)
+FetchContent_MakeAvailable(zstd)
+
+if(UNIX)
+    set(WITH_GFLAGS ON)
+    FetchContent_Declare(
+      gflags
+      GIT_REPOSITORY https://github.com/gflags/gflags.git
+      GIT_TAG        33bb3461e10864b5406353d3a1fb7ff34c2314b8
+    )
+    FetchContent_MakeAvailable(gflags)
+endif()
+
 set(WITH_CORE_TOOLS OFF CACHE BOOL "" FORCE)
 set(WITH_TOOLS OFF CACHE BOOL "" FORCE)
 set(WITH_TRACE_TOOLS OFF CACHE BOOL "" FORCE)
@@ -52,35 +78,13 @@ FetchContent_Declare(
   GIT_TAG        5fbc1cd5bcf63782675168b98e114151490de6d9
 )
 FetchContent_MakeAvailable(rocksdb)
-#set_target_properties(libzstd_static PROPERTIES FOLDER "ThirdParty")
-#set_target_properties(zlibstatic PROPERTIES FOLDER "ThirdParty")
 set_target_properties(rocksdb PROPERTIES FOLDER "ThirdParty")
 
 if(UNIX)
-    set(WITH_GFLAGS ON)
-    FetchContent_Declare(
-      gflags
-      GIT_REPOSITORY https://github.com/gflags/gflags.git
-      GIT_TAG        33bb3461e10864b5406353d3a1fb7ff34c2314b8
-    )
-    FetchContent_MakeAvailable(gflags)
     target_link_libraries(rocksdb PRIVATE gflags)
 endif()
 
-set(ZSTD_BUILD_STATIC ON CACHE BOOL "" FORCE)
-set(ZSTD_BUILD_SHARED OFF CACHE BOOL "" FORCE)
-set(ZSTD_BUILD_PROGRAMS  OFF CACHE BOOL "" FORCE)
-set(ZSTD_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(ZSTD_BUILD_CONTRIB OFF CACHE BOOL "" FORCE)
-set(ZSTD_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(ZSTD_LEGACY_SUPPORT OFF CACHE BOOL "" FORCE)
-FetchContent_Declare(
-    zstd
-    GIT_REPOSITORY https://github.com/facebook/zstd
-    GIT_TAG f8745da6ff1ad1e7bab384bd1f9d742439278e99
-)
-FetchContent_MakeAvailable(zstd)
-target_link_libraries(rocksdb PRIVATE libzstd_static)
+target_link_libraries(rocksdb PUBLIC libzstd_static)
 target_compile_definitions(rocksdb PRIVATE ZSTD=)
 target_include_directories(rocksdb PUBLIC ${zstd_SOURCE_DIR}/lib)
 
