@@ -100,7 +100,7 @@ list(REMOVE_ITEM HEADERS ${EXTENSION_HEADERS})
 # Add implementation
 add_library(amulet_rocksdb STATIC)
 set_target_properties(amulet_rocksdb PROPERTIES FOLDER "CPP")
-target_compile_definitions(amulet_rocksdb PRIVATE AMULET_ROCKSDB_EXPORT= AMULET_ROCKSDB_EXPORT_EXCEPTION=)
+target_compile_definitions(amulet_rocksdb PUBLIC AMULET_ROCKSDB_EXPORT= AMULET_ROCKSDB_EXPORT_EXCEPTION=)
 target_link_libraries(amulet_rocksdb PRIVATE rocksdb)
 target_include_directories(amulet_rocksdb PUBLIC ${SOURCE_PATH})
 target_sources(amulet_rocksdb PRIVATE ${SOURCES} ${HEADERS})
