@@ -12,10 +12,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ '3.11', '3.12' ]
-        os: [ macos-15, windows-2025 ]
+        config:
+          - { os: macos-15, python-version: '3.12', architecture : arm64 }
+          - { os: macos-15, python-version: '3.12', architecture : x64 }
+          - { os: windows-2025, python-version: '3.12', architecture : x64 }
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.config.os }}
     defaults:
       run:
         shell: bash
@@ -27,7 +29,8 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: ${{ matrix.config.python-version }}
+        architecture: ${{ matrix.config.architecture }}
 
     - name: Install dependencies
       shell: bash

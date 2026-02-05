@@ -49,8 +49,8 @@ class CMakeBuild(BuildExt):
                 platform_args.extend(["-A", "Win32"])
             platform_args.extend(["-T", "v143"])
         elif sys.platform == "darwin":
-            if platform.machine() == "arm64":
-                platform_args.append("-DCMAKE_OSX_ARCHITECTURES=x86_64;arm64")
+            arch = "arm64" if platform.machine() == "arm64" else "x86_64"
+            platform_args.append(f"-DCMAKE_OSX_ARCHITECTURES={arch}")
 
         if subprocess.run(["cmake", "--version"]).returncode:
             raise RuntimeError("Could not find cmake")
