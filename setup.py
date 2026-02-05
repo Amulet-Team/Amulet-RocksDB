@@ -101,5 +101,5 @@ setup(
     ext_modules=[Extension("amulet.rocksdb._rocksdb", [])]
     * (not os.environ.get("AMULET_SKIP_COMPILE", None)),
     install_requires=requirements.get_runtime_dependencies(),
-    options=options
+    options=options,
 )
