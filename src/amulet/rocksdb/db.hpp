@@ -33,6 +33,11 @@ namespace RocksDB {
         }
     };
 
+    enum class CompressionType : unsigned char {
+        NoCompression = 0x00,
+        ZStandardCompression = 0x07,
+    };
+
     struct RocksDBImpl;
 
     // A wrapper for RocksDB.
@@ -52,7 +57,8 @@ namespace RocksDB {
 
         RocksDB(
             std::filesystem::path path,
-            bool create_if_missing = false
+            bool create_if_missing = false,
+            CompressionType compression_type = CompressionType::ZStandardCompression
         );
 
         // Copy (deleted)

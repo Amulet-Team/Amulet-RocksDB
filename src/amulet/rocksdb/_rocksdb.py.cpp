@@ -400,36 +400,29 @@ void init_module(py::module m)
     //         "Get the value of the current entry in the database.\n"
     //         ":raises: runtime_error if iterator is not valid."));
 
-    // py::enum_<rocksdb::CompressionType> CompressionType(m, "CompressionType");
-    // CompressionType.value(
-    //     "NoCompression",
-    //     rocksdb::CompressionType::kNoCompression,
-    //     "No compression.");
-    // CompressionType.value(
-    //     "SnappyCompression",
-    //     rocksdb::CompressionType::kSnappyCompression,
-    //     "Snappy compression.");
-    ////CompressionType.value(
-    ////    "ZstdCompression",
-    ////    rocksdb::CompressionType::kZstdCompression,
-    ////    "Zstd compression.");
-    // CompressionType.value(
-    //     "ZlibRawCompression",
-    //     rocksdb::CompressionType::kZlibCompression,
-    //     "Zlib raw compression.");
-    // CompressionType.attr("__repr__") = py::cpp_function(
-    //     [module_name, CompressionType](const py::object& arg) -> py::str {
-    //         return py::str("{}.{}").format(module_name, CompressionType.attr("__str__")(arg));
-    //     },
-    //     py::name("__repr__"),
-    //     py::is_method(CompressionType));
+    py::enum_<Amulet::RocksDB::CompressionType> CompressionType(m, "CompressionType");
+    CompressionType.value(
+        "NoCompression",
+        Amulet::RocksDB::CompressionType::NoCompression,
+        "No compression.");
+    CompressionType.value(
+        "ZstdCompression",
+        Amulet::RocksDB::CompressionType::ZStandardCompression,
+        "Zstd compression.");
+     CompressionType.attr("__repr__") = py::cpp_function(
+         [module_name, CompressionType](const py::object& arg) -> py::str {
+             return py::str("{}.{}").format(module_name, CompressionType.attr("__str__")(arg));
+         },
+         py::name("__repr__"),
+         py::is_method(CompressionType));
 
     py::classh<Amulet::RocksDB::RocksDB> RocksDB(m, "RocksDB", py::release_gil_before_calling_cpp_dtor(),
         "A RocksDB database");
     RocksDB.def(
-        py::init<std::filesystem::path, bool>(),
+        py::init<std::filesystem::path, bool, Amulet::RocksDB::CompressionType>(),
         py::arg("path"),
         py::arg("create_if_missing") = false,
+        py::arg("compression_type") = Amulet::RocksDB::CompressionType::ZStandardCompression,
         py::doc(
             "Construct a new :class:`RocksDB` instance from the database at the given path.\n"
             "\n"
@@ -437,6 +430,7 @@ void init_module(py::module m)
             "\n"
             ":param path: The path to the database directory.\n"
             ":param create_if_missing: If True a new database will be created if one does not exist at the given path.\n"
+            ":param compression_type: The compression type to use. (Default ZStandardCompression)\n"
             ":raises: RocksDBException if an error occured."));
 
     RocksDB.def(

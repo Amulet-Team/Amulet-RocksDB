@@ -48,12 +48,14 @@ namespace RocksDB {
 
     RocksDB::RocksDB(
         std::filesystem::path path,
-        bool create_if_missing)
+        bool create_if_missing,
+        CompressionType compression_type)
         : RocksDB(
               path,
-              [create_if_missing]() {
+              [create_if_missing, compression_type]() {
                   Options options;
                   options.set_create_if_missing(create_if_missing);
+                  options._impl->compression = static_cast<ROCKSDB_NAMESPACE::CompressionType>(compression_type);
                   return options;
               }(),
               ReadOptions(),

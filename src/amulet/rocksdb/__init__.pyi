@@ -1,10 +1,48 @@
 from __future__ import annotations
 
 import os
+import types
+import typing
 
 from . import _rocksdb, _version
 
-__all__: list[str] = ["RocksDB", "RocksDBException", "compiler_config"]
+__all__: list[str] = [
+    "CompressionType",
+    "RocksDB",
+    "RocksDBException",
+    "compiler_config",
+]
+
+class CompressionType:
+    """
+    Members:
+
+      NoCompression : No compression.
+
+      ZstdCompression : Zstd compression.
+    """
+
+    NoCompression: typing.ClassVar[
+        CompressionType
+    ]  # value = amulet.rocksdb.CompressionType.NoCompression
+    ZstdCompression: typing.ClassVar[
+        CompressionType
+    ]  # value = amulet.rocksdb.CompressionType.ZstdCompression
+    __members__: typing.ClassVar[
+        dict[str, CompressionType]
+    ]  # value = {'NoCompression': amulet.rocksdb.CompressionType.NoCompression, 'ZstdCompression': amulet.rocksdb.CompressionType.ZstdCompression}
+    def __eq__(self, other: typing.Any) -> bool: ...
+    def __hash__(self) -> int: ...
+    def __index__(self) -> int: ...
+    def __init__(self, value: typing.SupportsInt) -> None: ...
+    def __int__(self) -> int: ...
+    def __ne__(self, other: typing.Any) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __str__(self) -> str: ...
+    @property
+    def name(self) -> str: ...
+    @property
+    def value(self) -> int: ...
 
 class RocksDB:
     """
@@ -14,7 +52,10 @@ class RocksDB:
     def __delitem__(self, key: bytes) -> None: ...
     def __getitem__(self, key: bytes) -> bytes: ...
     def __init__(
-        self, path: os.PathLike | str | bytes, create_if_missing: bool = False
+        self,
+        path: os.PathLike | str | bytes,
+        create_if_missing: bool = False,
+        compression_type: CompressionType = ...,
     ) -> None:
         """
         Construct a new :class:`RocksDB` instance from the database at the given path.
@@ -23,6 +64,7 @@ class RocksDB:
 
         :param path: The path to the database directory.
         :param create_if_missing: If True a new database will be created if one does not exist at the given path.
+        :param compression_type: The compression type to use. (Default ZStandardCompression)
         :raises: RocksDBException if an error occured.
         """
 
