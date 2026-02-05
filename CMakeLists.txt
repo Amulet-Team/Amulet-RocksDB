@@ -64,11 +64,12 @@ set(USE_RTTI OFF CACHE BOOL "" FORCE)
 set(WITH_RUNTIME_DEBUG OFF CACHE BOOL "" FORCE)
 set(WITH_WINDOWS_UTF8_FILENAMES OFF CACHE BOOL "" FORCE)
 set(ROCKSDB_BUILD_SHARED OFF CACHE BOOL "" FORCE)
+set(ROCKSDB_INSTALL OFF CACHE BOOL "" FORCE)
 
 FetchContent_Declare(
   rocksdb
-  GIT_REPOSITORY https://github.com/facebook/rocksdb.git
-  GIT_TAG        5fbc1cd5bcf63782675168b98e114151490de6d9
+  GIT_REPOSITORY https://github.com/Amulet-Team/rocksdb.git
+  GIT_TAG        15ca97a2dd2f9a067c9d3062d9319296555a0ce9
 )
 FetchContent_MakeAvailable(rocksdb)
 set_target_properties(rocksdb PROPERTIES FOLDER "ThirdParty")
