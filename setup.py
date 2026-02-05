@@ -26,10 +26,6 @@ if TYPE_CHECKING:
 else:
     BuildExt = cmdclass.get("build_ext", build_ext)
 
-if platform.machine() == "arm64":
-    arch = "arm64" if platform.machine() == "arm64" else "x86_64"
-    os.environ["ARCHFLAGS"] = f"-arch {arch}"
-
 
 class CMakeBuild(BuildExt):
     def build_extension(self, ext: Extension) -> None:
@@ -55,7 +51,8 @@ class CMakeBuild(BuildExt):
             platform_args.extend(["-T", "v143"])
         elif sys.platform == "darwin":
             if platform.machine() == "arm64":
-                arch = "arm64" if platform.machine() == "arm64" else "x86_64"
+                # rocksdb does not support universal builds
+                arch = platform.machine()
                 platform_args.append(f"-DCMAKE_OSX_ARCHITECTURES={arch}")
 
         if subprocess.run(["cmake", "--version"]).returncode:
@@ -89,10 +86,20 @@ class CMakeBuild(BuildExt):
 cmdclass["build_ext"] = CMakeBuild  # type: ignore
 
 
+options = {}
+
+if sys.platform == "darwin":
+    arch = platform.machine()
+    if arch not in ("arm64", "x86_64"):
+        raise RuntimeError(f"Unsupported architecture: {arch}")
+    options["bdist_wheel"] = {"plat_name": f"macosx_10_15_{arch}"}
+
+
 setup(
     version=versioneer.get_version(),
     cmdclass=cmdclass,
     ext_modules=[Extension("amulet.rocksdb._rocksdb", [])]
     * (not os.environ.get("AMULET_SKIP_COMPILE", None)),
     install_requires=requirements.get_runtime_dependencies(),
+    options=options
 )
