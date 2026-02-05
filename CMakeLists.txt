@@ -51,16 +51,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(zstd)
 
-if(UNIX)
-    set(WITH_GFLAGS ON)
-    FetchContent_Declare(
-      gflags
-      GIT_REPOSITORY https://github.com/gflags/gflags.git
-      GIT_TAG        33bb3461e10864b5406353d3a1fb7ff34c2314b8
-    )
-    FetchContent_MakeAvailable(gflags)
-endif()
-
 set(WITH_CORE_TOOLS OFF CACHE BOOL "" FORCE)
 set(WITH_TOOLS OFF CACHE BOOL "" FORCE)
 set(WITH_TRACE_TOOLS OFF CACHE BOOL "" FORCE)
@@ -79,10 +69,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(rocksdb)
 set_target_properties(rocksdb PROPERTIES FOLDER "ThirdParty")
-
-if(UNIX)
-    target_link_libraries(rocksdb PRIVATE gflags)
-endif()
 
 target_link_libraries(rocksdb PUBLIC libzstd_static)
 target_compile_definitions(rocksdb PUBLIC ZSTD=)
