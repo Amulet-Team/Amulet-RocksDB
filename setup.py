@@ -8,6 +8,7 @@ from typing import TypeAlias, TYPE_CHECKING
 
 from setuptools import setup, Extension, Command
 from setuptools.command.build_ext import build_ext
+from wheel.bdist_wheel import bdist_wheel
 
 import versioneer
 
@@ -22,8 +23,10 @@ cmdclass: dict[str, type[Command]] = versioneer.get_cmdclass()
 
 if TYPE_CHECKING:
     BuildExt: TypeAlias = build_ext
+    BDistWheel: TypeAlias = bdist_wheel
 else:
     BuildExt = cmdclass.get("build_ext", build_ext)
+    BDistWheel = cmdclass.get("bdist_wheel", bdist_wheel)
 
 
 class CMakeBuild(BuildExt):
@@ -50,7 +53,8 @@ class CMakeBuild(BuildExt):
             platform_args.extend(["-T", "v143"])
         elif sys.platform == "darwin":
             if platform.machine() == "arm64":
-                platform_args.append("-DCMAKE_OSX_ARCHITECTURES=x86_64;arm64")
+                arch = "arm64" if platform.machine() == "arm64" else "x86_64"
+                platform_args.append(f"-DCMAKE_OSX_ARCHITECTURES={arch}")
 
         if subprocess.run(["cmake", "--version"]).returncode:
             raise RuntimeError("Could not find cmake")
@@ -81,6 +85,15 @@ class CMakeBuild(BuildExt):
 
 
 cmdclass["build_ext"] = CMakeBuild  # type: ignore
+
+
+class BDistWheel2(BDistWheel):
+    def get_tag(self) -> tuple[str, str, str]:
+        python, abi, plat = super().get_tag()
+        if platform.machine() == "arm64":
+            arch = "arm64" if platform.machine() == "arm64" else "x86_64"
+            plat = plat.replace("universal2", arch)
+        return python, abi, plat
 
 
 setup(
