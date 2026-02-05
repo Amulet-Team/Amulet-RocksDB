@@ -23,10 +23,12 @@ cmdclass: dict[str, type[Command]] = versioneer.get_cmdclass()
 
 if TYPE_CHECKING:
     BuildExt: TypeAlias = build_ext
-    BDistWheel: TypeAlias = bdist_wheel
 else:
     BuildExt = cmdclass.get("build_ext", build_ext)
-    BDistWheel = cmdclass.get("bdist_wheel", bdist_wheel)
+
+if platform.machine() == "arm64":
+    arch = "arm64" if platform.machine() == "arm64" else "x86_64"
+    os.environ["ARCHFLAGS"] = f"-arch {arch}"
 
 
 class CMakeBuild(BuildExt):
@@ -85,15 +87,6 @@ class CMakeBuild(BuildExt):
 
 
 cmdclass["build_ext"] = CMakeBuild  # type: ignore
-
-
-class BDistWheel2(BDistWheel):
-    def get_tag(self) -> tuple[str, str, str]:
-        python, abi, plat = super().get_tag()
-        if platform.machine() == "arm64":
-            arch = "arm64" if platform.machine() == "arm64" else "x86_64"
-            plat = plat.replace("universal2", arch)
-        return python, abi, plat
 
 
 setup(
