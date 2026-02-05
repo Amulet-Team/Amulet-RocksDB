@@ -36,6 +36,9 @@ endif()
 # Add dependencies
 include(FetchContent)
 
+cmake_policy(SET CMP0077 NEW)
+set(WITH_GFLAGS OFF CACHE BOOL "" FORCE)
+
 set(ZSTD_BUILD_STATIC ON CACHE BOOL "" FORCE)
 set(ZSTD_BUILD_SHARED OFF CACHE BOOL "" FORCE)
 set(ZSTD_BUILD_PROGRAMS  OFF CACHE BOOL "" FORCE)
