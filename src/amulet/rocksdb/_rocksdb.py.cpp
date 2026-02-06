@@ -425,17 +425,14 @@ void init_module(py::module m)
         py::arg("batch"),
         py::doc("Set a group of values in the database."));
 
-    // RocksDB.def(
-    //     "__contains__",
-    //     [](Amulet::RocksDB& self, rocksdb::Slice key) {
-    //         if (!self) {
-    //             throw std::runtime_error("The RocksDB database has been closed.");
-    //         }
-    //         std::string value;
-    //         return self->Get(self.get_read_options(), key, &value).ok();
-    //     },
-    //     py::arg("key"),
-    //     py::call_guard<py::gil_scoped_release>());
+    RocksDB.def(
+        "__contains__",
+        [](Amulet::RocksDB::RocksDB& self, py::bytes key) {
+            std::string_view key_view = key;
+            return self.contains(key_view);
+        },
+        py::arg("key"),
+        py::call_guard<py::gil_scoped_release>());
 
     auto get = [](Amulet::RocksDB::RocksDB& self, py::bytes key) {
         std::string_view key_view = key;

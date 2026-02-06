@@ -63,6 +63,7 @@ class RocksDB:
     A RocksDB database
     """
 
+    def __contains__(self, key: bytes) -> bool: ...
     def __delitem__(self, key: bytes) -> None:
         """
         del db[b"key"]
