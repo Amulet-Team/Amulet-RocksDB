@@ -8,7 +8,6 @@ struct CompactRangeOptions;
 
 namespace Amulet {
 namespace RocksDB {
-    class RocksDB;
 
     class AMULET_ROCKSDB_EXPORT CompactRangeOptions {
     private:

@@ -9,7 +9,6 @@ struct Options;
 
 namespace Amulet {
 namespace RocksDB {
-    class RocksDB;
 
     class AMULET_ROCKSDB_EXPORT Options {
     private:

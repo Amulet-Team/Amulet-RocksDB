@@ -8,7 +8,6 @@ struct ReadOptions;
 
 namespace Amulet {
 namespace RocksDB {
-    class RocksDB;
 
     class AMULET_ROCKSDB_EXPORT ReadOptions {
     private:

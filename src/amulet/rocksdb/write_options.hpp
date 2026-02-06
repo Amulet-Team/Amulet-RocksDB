@@ -8,7 +8,6 @@ struct WriteOptions;
 
 namespace Amulet {
 namespace RocksDB {
-    class RocksDB;
 
     class AMULET_ROCKSDB_EXPORT WriteOptions {
     private:
