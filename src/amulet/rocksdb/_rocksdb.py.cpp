@@ -371,7 +371,7 @@ void init_module(py::module m)
                 end_view = end;
             }
             {
-                py::gil_scoped_release gil;
+                py::gil_scoped_release nogil;
                 self.compact_range(begin_view, end_view);
             }
         },
@@ -389,7 +389,7 @@ void init_module(py::module m)
         std::string_view key_view = key;
         std::string_view value_view = value;
         {
-            py::gil_scoped_release gil;
+            py::gil_scoped_release nogil;
             self.put(key_view, value_view);
         }
     };
@@ -441,7 +441,7 @@ void init_module(py::module m)
         std::string_view key_view = key;
         std::string value;
         try {
-            py::gil_scoped_release gil;
+            py::gil_scoped_release nogil;
             value = self.get(key_view);
         } catch (const Amulet::RocksDB::KeyError& e) {
             throw py::key_error(e.what());
@@ -468,7 +468,7 @@ void init_module(py::module m)
     auto del = [](Amulet::RocksDB::RocksDB& self, py::bytes key) {
         std::string_view key_view = key;
         {
-            py::gil_scoped_release gil;
+            py::gil_scoped_release nogil;
             self.del(key_view);
         }
     };
