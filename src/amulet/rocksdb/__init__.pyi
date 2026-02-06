@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import types
 import typing
 
 from . import _rocksdb, _version
@@ -63,8 +62,16 @@ class RocksDB:
     A RocksDB database
     """
 
-    def __delitem__(self, key: bytes) -> None: ...
-    def __getitem__(self, key: bytes) -> bytes: ...
+    def __delitem__(self, key: bytes) -> None:
+        """
+        del db[b"key"]
+        """
+
+    def __getitem__(self, key: bytes) -> bytes:
+        """
+        db[b"key"]
+        """
+
     @typing.overload
     def __init__(
         self,
@@ -105,7 +112,11 @@ class RocksDB:
         :raises: RocksDBException if an error occured.
         """
 
-    def __setitem__(self, key: bytes, value: bytes) -> None: ...
+    def __setitem__(self, key: bytes, value: bytes) -> None:
+        """
+        db[b"key"] = b"value"
+        """
+
     def close(self) -> None:
         """
         Close the rocksdb database.
@@ -118,7 +129,7 @@ class RocksDB:
         Remove deleted entries from the database to reduce its size.
         """
 
-    def compact_range(self, arg0: str | None, arg1: str | None) -> None:
+    def compact_range(self, begin: bytes | None, end: bytes | None) -> None:
         """
         Remove deleted entries from the database to reduce its size.
         """

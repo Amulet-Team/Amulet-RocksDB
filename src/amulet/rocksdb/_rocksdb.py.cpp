@@ -3,24 +3,14 @@
 #include <pybind11/stl/filesystem.h>
 #include <pybind11/typing.h>
 
-// #include <filesystem>
-// #include <optional>
-// #include <string>
+#include <filesystem>
+#include <optional>
+#include <string>
 #include <string_view>
-// #include <variant>
-//
-// #include <rocksdb/cache.h>
-// #include <rocksdb/db.h>
-////#include <rocksdb/decompress_allocator.h>
-// #include <rocksdb/env.h>
-// #include <rocksdb/filter_policy.h>
-// #include <rocksdb/options.h>
-// #include <rocksdb/write_batch.h>
 
 #include <amulet/pybind11_extensions/compatibility.hpp>
 #include <amulet/pybind11_extensions/iterator.hpp>
 
-// #include <amulet/rocksdb.hpp>
 #include <amulet/rocksdb/compact_range_options.hpp>
 #include <amulet/rocksdb/db.hpp>
 #include <amulet/rocksdb/options.hpp>
@@ -69,7 +59,6 @@ namespace detail {
 } // namespace PYBIND11_NAMESPACE::detail
 
 namespace {
-
 
 // class RocksDBKeysIterator {
 // private:
@@ -370,19 +359,17 @@ void init_module(py::module m)
             ":raises: RocksDBException if an error occured."));
     RocksDB.def(
         py::init([](
-            std::filesystem::path path,
-            Amulet::RocksDB::Options& options,
-            Amulet::RocksDB::ReadOptions& read_options,
-            Amulet::RocksDB::WriteOptions& write_options,
-            Amulet::RocksDB::CompactRangeOptions& compact_range_options
-        ) { 
+                     std::filesystem::path path,
+                     Amulet::RocksDB::Options& options,
+                     Amulet::RocksDB::ReadOptions& read_options,
+                     Amulet::RocksDB::WriteOptions& write_options,
+                     Amulet::RocksDB::CompactRangeOptions& compact_range_options) {
             return std::make_unique<Amulet::RocksDB::RocksDB>(
                 std::move(path),
                 std::move(options),
                 std::move(read_options),
                 std::move(write_options),
-                std::move(compact_range_options)
-            );
+                std::move(compact_range_options));
         }),
         py::arg("path"),
         py::arg("options"),
@@ -412,9 +399,23 @@ void init_module(py::module m)
 
     RocksDB.def(
         "compact_range",
-        &Amulet::RocksDB::RocksDB::compact_range,
-        py::doc("Remove deleted entries from the database to reduce its size."),
-        py::call_guard<py::gil_scoped_release>());
+        [](Amulet::RocksDB::RocksDB& self, std::optional<py::bytes> begin, std::optional<py::bytes> end) {
+            std::optional<std::string_view> begin_view;
+            std::optional<std::string_view> end_view;
+            if (begin) {
+                begin_view = begin;
+            }
+            if (end) {
+                end_view = end;
+            }
+            {
+                py::gil_scoped_release gil;
+                self.compact_range(begin_view, end_view);
+            }
+        },
+        py::arg("begin"),
+        py::arg("end"),
+        py::doc("Remove deleted entries from the database to reduce its size."));
 
     RocksDB.def(
         "compact",
@@ -440,7 +441,8 @@ void init_module(py::module m)
         "__setitem__",
         put,
         py::arg("key"),
-        py::arg("value"));
+        py::arg("value"),
+        py::doc("db[b\"key\"] = b\"value\""));
 
     // RocksDB.def(
     //     "put_batch",
@@ -491,7 +493,11 @@ void init_module(py::module m)
             ":return: The data stored behind the given key.\n"
             ":raises: KeyError if the requested key is not present.\n"
             ":raises: RocksDBException on other error."));
-    RocksDB.def("__getitem__", get, py::arg("key"));
+    RocksDB.def(
+        "__getitem__",
+        get,
+        py::arg("key"),
+        py::doc("db[b\"key\"]"));
 
     auto del = [](Amulet::RocksDB::RocksDB& self, py::bytes key) {
         std::string_view key_view = key;
@@ -507,13 +513,12 @@ void init_module(py::module m)
         py::doc(
             "Delete a key from the database.\n"
             "\n"
-            ":param key: The key to delete from the database."),
-        py::call_guard<py::gil_scoped_release>());
+            ":param key: The key to delete from the database."));
     RocksDB.def(
         "__delitem__",
         del,
         py::arg("key"),
-        py::call_guard<py::gil_scoped_release>());
+        py::doc("del db[b\"key\"]"));
 
     // RocksDB.def(
     //     "create_iterator",
