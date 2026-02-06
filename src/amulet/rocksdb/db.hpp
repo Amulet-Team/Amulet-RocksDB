@@ -5,6 +5,7 @@
 #include <string>
 #include <string_view>
 
+#include "compression.hpp"
 #include "export.hpp"
 
 namespace ROCKSDB_NAMESPACE {
@@ -33,11 +34,6 @@ namespace RocksDB {
         }
     };
 
-    enum class CompressionType : unsigned char {
-        NoCompression = 0x00,
-        ZStandardCompression = 0x07,
-    };
-
     struct RocksDBImpl;
 
     // A wrapper for RocksDB.
@@ -50,16 +46,15 @@ namespace RocksDB {
         // Constructor
         RocksDB(
             std::filesystem::path path,
-            const Options& options,
-            const ReadOptions& read_options,
-            const WriteOptions& write_options);
-        // CompactRangeOptions& compact_range_options);
+            Options&& options,
+            ReadOptions&& read_options,
+            WriteOptions&& write_options,
+            CompactRangeOptions&& compact_range_options);
 
         RocksDB(
             std::filesystem::path path,
             bool create_if_missing = false,
-            CompressionType compression_type = CompressionType::ZStandardCompression
-        );
+            CompressionType compression_type = CompressionType::ZStandardCompression);
 
         // Copy (deleted)
         RocksDB(const RocksDB&) = delete;
@@ -103,16 +98,16 @@ namespace RocksDB {
         // Thread safe.
         void del(std::string_view key);
 
-        //// Compact the range of the database
-        //// If an argument is nullopt it defaults to the start or end of the database.
-        //// Thread safe.
-        // void compact_range(
-        //     std::optional<std::string_view> begin,
-        //     std::optional<std::string_view> end);
+        // Compact the range of the database
+        // If an argument is nullopt it defaults to the start or end of the database.
+        // Thread safe.
+        void compact_range(
+            std::optional<std::string_view> begin,
+            std::optional<std::string_view> end);
 
-        //// Compact the whole database
-        //// Thread safe.
-        // void compact();
+        // Compact the whole database
+        // Thread safe.
+        void compact();
     };
 } // namespace RocksDB
 } // namespace Amulet

@@ -7,6 +7,7 @@ import typing
 from . import _rocksdb, _version
 
 __all__: list[str] = [
+    "CompactRangeOptions",
     "CompressionType",
     "Options",
     "ReadOptions",
@@ -15,6 +16,9 @@ __all__: list[str] = [
     "WriteOptions",
     "compiler_config",
 ]
+
+class CompactRangeOptions:
+    def __init__(self) -> None: ...
 
 class CompressionType:
     """
@@ -86,6 +90,7 @@ class RocksDB:
         options: Options,
         read_options: ReadOptions,
         write_options: WriteOptions,
+        compact_range_options: CompactRangeOptions,
     ) -> None:
         """
         Construct a new :class:`RocksDB` instance from the database at the given path.
@@ -96,6 +101,7 @@ class RocksDB:
         :param options: The RocksDB Options object.
         :param read_options: The RocksDB ReadOptions object.
         :param write_options: The RocksDB WriteOptions object.
+        :param compact_range_options: The RocksDB CompactRangeOptions object.
         :raises: RocksDBException if an error occured.
         """
 
@@ -105,6 +111,16 @@ class RocksDB:
         Close the rocksdb database.
         Only the owner of the database may close it.
         If needed, an external lock must be used to ensure that no other threads are accessing the database.
+        """
+
+    def compact(self) -> None:
+        """
+        Remove deleted entries from the database to reduce its size.
+        """
+
+    def compact_range(self, arg0: str | None, arg1: str | None) -> None:
+        """
+        Remove deleted entries from the database to reduce its size.
         """
 
     def delete(self, key: bytes) -> None:

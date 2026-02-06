@@ -5,6 +5,7 @@
 
 #include <rocksdb/db.h>
 
+#include "compact_range_options.hpp"
 #include "db.hpp"
 #include "options.hpp"
 #include "read_options.hpp"
@@ -17,32 +18,33 @@ namespace RocksDB {
         ROCKSDB_NAMESPACE::DB* db;
         ROCKSDB_NAMESPACE::ReadOptions read_options;
         ROCKSDB_NAMESPACE::WriteOptions write_options;
-        // ROCKSDB_NAMESPACE::CompactRangeOptions compact_range_options;
+        ROCKSDB_NAMESPACE::CompactRangeOptions compact_range_options;
     };
 
     RocksDB::RocksDB(
         std::filesystem::path path,
-        const Options& options,
-        const ReadOptions& read_options,
-        const WriteOptions& write_options)
-    // CompactRangeOptions& compact_range_options)
+        Options&& options,
+        ReadOptions&& read_options,
+        WriteOptions&& write_options,
+        CompactRangeOptions&& compact_range_options)
     {
         // Expand dots and symbolic links
         path = std::filesystem::absolute(path);
 
         std::unique_ptr<ROCKSDB_NAMESPACE::DB> db = nullptr;
-        auto status = ROCKSDB_NAMESPACE::DB::Open(*options._impl, path.string(), &db);
+        auto status = ROCKSDB_NAMESPACE::DB::Open(*options.borrow(), path.string(), &db);
         if (status.IsCorruption()) {
-            ROCKSDB_NAMESPACE::RepairDB(path.string(), *options._impl);
-            status = ROCKSDB_NAMESPACE::DB::Open(*options._impl, path.string(), &db);
+            ROCKSDB_NAMESPACE::RepairDB(path.string(), *options.borrow());
+            status = ROCKSDB_NAMESPACE::DB::Open(*options.borrow(), path.string(), &db);
         }
         if (!status.ok()) {
             throw RocksDBException(status.ToString());
         }
         _impl = new RocksDBImpl {
             db.release(),
-            *read_options._impl,
-            *write_options._impl,
+            *read_options.steal(),
+            *write_options.steal(),
+            *compact_range_options.steal()
         };
     }
 
@@ -55,11 +57,12 @@ namespace RocksDB {
               [create_if_missing, compression_type]() {
                   Options options;
                   options.set_create_if_missing(create_if_missing);
-                  options._impl->compression = static_cast<ROCKSDB_NAMESPACE::CompressionType>(compression_type);
+                  options.set_compression_type(compression_type);
                   return options;
               }(),
               ReadOptions(),
-              WriteOptions())
+              WriteOptions(),
+              CompactRangeOptions())
     {
         Options options;
         ReadOptions read_options;
@@ -166,27 +169,51 @@ namespace RocksDB {
         }
     }
 
-    // void RocksDB::compact_range(std::optional<std::string_view> begin, std::optional<std::string_view> end)
-    //{
-    //     if (!_impl) {
-    //         throw std::runtime_error("RocksDB has been closed");
-    //     }
-    //     _impl->db->CompactRange(
-    //         _impl->compact_range_options,
-    //         begin ? *begin : nullptr,
-    //         end ? *end : nullptr);
-    // }
+    void RocksDB::compact_range(std::optional<std::string_view> begin, std::optional<std::string_view> end)
+    {
+        if (!_impl) {
+            throw std::runtime_error("RocksDB has been closed");
+        }
+        if (begin) {
+            ROCKSDB_NAMESPACE::Slice begin_slice = *begin;
+            if (end) {
+                ROCKSDB_NAMESPACE::Slice end_slice = *end;
+                _impl->db->CompactRange(
+                    _impl->compact_range_options,
+                    &begin_slice,
+                    &end_slice);
+            } else {
+                _impl->db->CompactRange(
+                    _impl->compact_range_options,
+                    &begin_slice,
+                    nullptr);
+            }
+        } else {
+            if (end) {
+                ROCKSDB_NAMESPACE::Slice end_slice = *end;
+                _impl->db->CompactRange(
+                    _impl->compact_range_options,
+                    nullptr,
+                    &end_slice);
+            } else {
+                _impl->db->CompactRange(
+                    _impl->compact_range_options,
+                    nullptr,
+                    nullptr);
+            }
+        }
+    }
 
-    // void RocksDB::compact()
-    //{
-    //     if (!_impl) {
-    //         throw std::runtime_error("RocksDB has been closed");
-    //     }
-    //     _impl->db->CompactRange(
-    //         _impl->compact_range_options,
-    //         nullptr,
-    //         nullptr);
-    // }
+    void RocksDB::compact()
+    {
+        if (!_impl) {
+            throw std::runtime_error("RocksDB has been closed");
+        }
+        _impl->db->CompactRange(
+            _impl->compact_range_options,
+            nullptr,
+            nullptr);
+    }
 
 } // namespace RocksDB
 } // namespace Amulet

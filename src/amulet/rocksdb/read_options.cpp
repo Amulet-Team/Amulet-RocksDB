@@ -17,16 +17,26 @@ namespace RocksDB {
 
     ReadOptions::ReadOptions(ReadOptions&& other)
     {
-        _impl = other._impl;
-        other._impl = new ROCKSDB_NAMESPACE::ReadOptions();
+        _impl = other.steal();
     }
 
     ReadOptions& ReadOptions::operator=(ReadOptions&& other)
     {
         delete _impl;
-        _impl = other._impl;
-        other._impl = new ROCKSDB_NAMESPACE::ReadOptions();
+        _impl = other.steal();
         return *this;
+    }
+
+    ROCKSDB_NAMESPACE::ReadOptions* ReadOptions::steal()
+    {
+        auto* impl = _impl;
+        _impl = new ROCKSDB_NAMESPACE::ReadOptions();
+        return impl;
+    }
+
+    ROCKSDB_NAMESPACE::ReadOptions* ReadOptions::borrow()
+    {
+        return _impl;
     }
 
 } // namespace RocksDB

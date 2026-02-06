@@ -17,16 +17,26 @@ namespace RocksDB {
 
     WriteOptions::WriteOptions(WriteOptions&& other)
     {
-        _impl = other._impl;
-        other._impl = new ROCKSDB_NAMESPACE::WriteOptions();
+        _impl = other.steal();
     }
 
     WriteOptions& WriteOptions::operator=(WriteOptions&& other)
     {
         delete _impl;
-        _impl = other._impl;
-        other._impl = new ROCKSDB_NAMESPACE::WriteOptions();
+        _impl = other.steal();
         return *this;
+    }
+
+    ROCKSDB_NAMESPACE::WriteOptions* WriteOptions::steal()
+    {   
+        auto* impl = _impl;
+        _impl = new ROCKSDB_NAMESPACE::WriteOptions();
+        return impl;
+    }
+
+    ROCKSDB_NAMESPACE::WriteOptions* WriteOptions::borrow()
+    {
+        return _impl;
     }
 
     bool WriteOptions::get_sync()

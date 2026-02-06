@@ -21,6 +21,7 @@
 #include <amulet/pybind11_extensions/iterator.hpp>
 
 // #include <amulet/rocksdb.hpp>
+#include <amulet/rocksdb/compact_range_options.hpp>
 #include <amulet/rocksdb/db.hpp>
 #include <amulet/rocksdb/options.hpp>
 #include <amulet/rocksdb/read_options.hpp>
@@ -243,6 +244,10 @@ void init_module(py::module m)
         &Amulet::RocksDB::WriteOptions::get_disable_wal,
         &Amulet::RocksDB::WriteOptions::set_disable_wal);
 
+    py::classh<Amulet::RocksDB::CompactRangeOptions> CompactRangeOptions(m, "CompactRangeOptions");
+    CompactRangeOptions.def(
+        py::init());
+
     // py::classh<Amulet::RocksDBIterator> RocksDBIterator(m, "RocksDBIterator", py::release_gil_before_calling_cpp_dtor());
     // RocksDBIterator.def(
     //     "valid",
@@ -364,15 +369,26 @@ void init_module(py::module m)
             ":param compression_type: The compression type to use. (Default ZStandardCompression)\n"
             ":raises: RocksDBException if an error occured."));
     RocksDB.def(
-        py::init<
-            std::filesystem::path,
-            const Amulet::RocksDB::Options&,
-            const Amulet::RocksDB::ReadOptions&,
-            const Amulet::RocksDB::WriteOptions&>(),
+        py::init([](
+            std::filesystem::path path,
+            Amulet::RocksDB::Options& options,
+            Amulet::RocksDB::ReadOptions& read_options,
+            Amulet::RocksDB::WriteOptions& write_options,
+            Amulet::RocksDB::CompactRangeOptions& compact_range_options
+        ) { 
+            return std::make_unique<Amulet::RocksDB::RocksDB>(
+                std::move(path),
+                std::move(options),
+                std::move(read_options),
+                std::move(write_options),
+                std::move(compact_range_options)
+            );
+        }),
         py::arg("path"),
         py::arg("options"),
         py::arg("read_options"),
         py::arg("write_options"),
+        py::arg("compact_range_options"),
         py::doc(
             "Construct a new :class:`RocksDB` instance from the database at the given path.\n"
             "\n"
@@ -382,6 +398,7 @@ void init_module(py::module m)
             ":param options: The RocksDB Options object.\n"
             ":param read_options: The RocksDB ReadOptions object.\n"
             ":param write_options: The RocksDB WriteOptions object.\n"
+            ":param compact_range_options: The RocksDB CompactRangeOptions object.\n"
             ":raises: RocksDBException if an error occured."));
 
     RocksDB.def(
@@ -393,16 +410,17 @@ void init_module(py::module m)
             "If needed, an external lock must be used to ensure that no other threads are accessing the database."),
         py::call_guard<py::gil_scoped_release>());
 
-    // RocksDB.def(
-    //     "compact",
-    //     [](Amulet::RocksDB& self) {
-    //         if (!self) {
-    //             throw std::runtime_error("The RocksDB database has been closed.");
-    //         }
-    //         //self->CompactRange(nullptr, nullptr);
-    //     },
-    //     py::doc("Remove deleted entries from the database to reduce its size."),
-    //     py::call_guard<py::gil_scoped_release>());
+    RocksDB.def(
+        "compact_range",
+        &Amulet::RocksDB::RocksDB::compact_range,
+        py::doc("Remove deleted entries from the database to reduce its size."),
+        py::call_guard<py::gil_scoped_release>());
+
+    RocksDB.def(
+        "compact",
+        &Amulet::RocksDB::RocksDB::compact,
+        py::doc("Remove deleted entries from the database to reduce its size."),
+        py::call_guard<py::gil_scoped_release>());
 
     auto put = [](Amulet::RocksDB::RocksDB& self, py::bytes key, py::bytes value) {
         std::string_view key_view = key;
