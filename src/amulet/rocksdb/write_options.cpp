@@ -29,7 +29,7 @@ namespace RocksDB {
         return *this;
     }
 
-    bool WriteOptions::sync()
+    bool WriteOptions::get_sync()
     {
         return _impl->sync;
     }
@@ -39,7 +39,7 @@ namespace RocksDB {
         _impl->sync = sync;
     }
 
-    bool WriteOptions::disable_wal()
+    bool WriteOptions::get_disable_wal()
     {
         return _impl->disableWAL;
     }

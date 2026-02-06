@@ -22,9 +22,9 @@ namespace RocksDB {
 
     RocksDB::RocksDB(
         std::filesystem::path path,
-        Options options,
-        ReadOptions read_options,
-        WriteOptions write_options)
+        const Options& options,
+        const ReadOptions& read_options,
+        const WriteOptions& write_options)
     // CompactRangeOptions& compact_range_options)
     {
         // Expand dots and symbolic links

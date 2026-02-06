@@ -8,8 +8,11 @@ from . import _rocksdb, _version
 
 __all__: list[str] = [
     "CompressionType",
+    "Options",
+    "ReadOptions",
     "RocksDB",
     "RocksDBException",
+    "WriteOptions",
     "compiler_config",
 ]
 
@@ -44,6 +47,13 @@ class CompressionType:
     @property
     def value(self) -> int: ...
 
+class Options:
+    create_if_missing: bool
+    def __init__(self) -> None: ...
+
+class ReadOptions:
+    def __init__(self) -> None: ...
+
 class RocksDB:
     """
     A RocksDB database
@@ -51,6 +61,7 @@ class RocksDB:
 
     def __delitem__(self, key: bytes) -> None: ...
     def __getitem__(self, key: bytes) -> bytes: ...
+    @typing.overload
     def __init__(
         self,
         path: os.PathLike | str | bytes,
@@ -65,6 +76,26 @@ class RocksDB:
         :param path: The path to the database directory.
         :param create_if_missing: If True a new database will be created if one does not exist at the given path.
         :param compression_type: The compression type to use. (Default ZStandardCompression)
+        :raises: RocksDBException if an error occured.
+        """
+
+    @typing.overload
+    def __init__(
+        self,
+        path: os.PathLike | str | bytes,
+        options: Options,
+        read_options: ReadOptions,
+        write_options: WriteOptions,
+    ) -> None:
+        """
+        Construct a new :class:`RocksDB` instance from the database at the given path.
+
+        A rocksdb database is like a dictionary that only contains bytes as the keys and values and exists entirely on the disk.
+
+        :param path: The path to the database directory.
+        :param options: The RocksDB Options object.
+        :param read_options: The RocksDB ReadOptions object.
+        :param write_options: The RocksDB WriteOptions object.
         :raises: RocksDBException if an error occured.
         """
 
@@ -100,6 +131,11 @@ class RocksDB:
 
 class RocksDBException(Exception):
     pass
+
+class WriteOptions:
+    disable_wal: bool
+    sync: bool
+    def __init__(self) -> None: ...
 
 def _init() -> None: ...
 

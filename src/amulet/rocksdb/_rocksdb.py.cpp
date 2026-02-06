@@ -22,39 +22,15 @@
 
 // #include <amulet/rocksdb.hpp>
 #include <amulet/rocksdb/db.hpp>
+#include <amulet/rocksdb/options.hpp>
+#include <amulet/rocksdb/read_options.hpp>
+#include <amulet/rocksdb/write_options.hpp>
 
 namespace py = pybind11;
 namespace pyext = Amulet::pybind11_extensions;
 
 namespace PYBIND11_NAMESPACE {
 namespace detail {
-    // template <>
-    // struct type_caster<rocksdb::Slice> {
-    // public:
-    //     PYBIND11_TYPE_CASTER(rocksdb::Slice, const_name("bytes"));
-
-    //    bool load(handle src, bool)
-    //    {
-    //        PyObject* source = src.ptr();
-    //        if (!PyBytes_Check(source)) {
-    //            return false;
-    //        }
-    //        Py_ssize_t size = PyBytes_Size(src.ptr());
-    //        const char* buffer = PyBytes_AsString(src.ptr());
-    //        if (!buffer) {
-    //            return false;
-    //        }
-    //        value = rocksdb::Slice(buffer, size);
-    //        return true;
-    //    }
-
-    //    // This causes a crash that I don't understand
-    //    // static handle cast(const rocksdb::Slice& src, return_value_policy /* policy */, handle /* parent */)
-    //    //{
-    //    //    return py::bytes(src.data(), src.size());
-    //    //}
-    //};
-
     // template <>
     // struct type_caster<rocksdb::WriteBatch> {
     // public:
@@ -93,76 +69,7 @@ namespace detail {
 
 namespace {
 
-// class RocksDBException : public std::runtime_error {
-//     using std::runtime_error::runtime_error;
-// };
-// class RocksDBEncrypted : public RocksDBException {
-//     using RocksDBException::RocksDBException;
-// };
 
-// class NullLogger : public rocksdb::Logger {
-// public:
-//     void Logv(const char*, va_list) override { }
-// };
-//
-// class RocksDBOptions : public Amulet::RocksDBOptions {
-// public:
-//     NullLogger logger;
-//     //rocksdb::DecompressAllocator decompress_allocator;
-// };
-//
-// std::unique_ptr<Amulet::RocksDB> open_rocksdb(
-//     std::string path_str,
-//     bool create_if_missing = false,
-//     rocksdb::CompressionType compression_type = rocksdb::kZlibCompression)
-//{
-//     // Expand dots and symbolic links
-//     auto path = std::filesystem::absolute(path_str);
-//     // If there is not a directory at the path
-//     if (!std::filesystem::is_directory(path)) {
-//         if (std::filesystem::exists(path)) {
-//             // If the path exists but is not a directory
-//             throw RocksDBException("A non-directory file exists at " + path.string());
-//         } else if (create_if_missing) {
-//             // Create if requested
-//             std::filesystem::create_directories(path);
-//         } else {
-//             throw RocksDBException("No database exists to open at " + path.string());
-//         }
-//     }
-//
-//     auto options = std::make_unique<RocksDBOptions>();
-//     options->options.create_if_missing = create_if_missing;
-//     //options->options.filter_policy = rocksdb::NewBloomFilterPolicy(10);
-//     //options->options.block_cache = rocksdb::NewLRUCache(40 * 1024 * 1024);
-//     options->options.write_buffer_size = 4 * 1024 * 1024;
-//     //options->options.info_log = &options->logger;
-//     options->options.compression = compression_type;
-//     //options->options.block_size = 163840;
-//
-//     //options->read_options.decompress_allocator = &options->decompress_allocator;
-//
-//     rocksdb::DB* _db = NULL;
-//     auto status = rocksdb::DB::Open(options->options, path.string(), &_db);
-//     if (status.ok()) {
-//         return std::make_unique<Amulet::RocksDB>(
-//             std::unique_ptr<rocksdb::DB>(_db),
-//             std::move(options));
-//     } else if (status.IsCorruption()) {
-//         rocksdb::RepairDB(path.string(), options->options);
-//         {
-//             auto status2 = rocksdb::DB::Open(options->options, path.string(), &_db);
-//             if (status2.ok()) {
-//                 return std::make_unique<Amulet::RocksDB>(
-//                     std::unique_ptr<rocksdb::DB>(_db),
-//                     std::move(options));
-//             }
-//         }
-//         throw RocksDBException("Could not recover corrupted database. " + status.ToString());
-//     }
-//     throw RocksDBException(status.ToString());
-// }
-//
 // class RocksDBKeysIterator {
 // private:
 //     std::unique_ptr<Amulet::RocksDBIterator> iterator_ptr;
@@ -312,6 +219,30 @@ void init_module(py::module m)
     py::register_local_exception<Amulet::RocksDB::RocksDBException>(m, "RocksDBException");
     // py::register_local_exception<RocksDBEncrypted>(m, "RocksDBEncrypted");
 
+    py::classh<Amulet::RocksDB::Options> Options(m, "Options");
+    Options.def(
+        py::init());
+    Options.def_property(
+        "create_if_missing",
+        &Amulet::RocksDB::Options::get_create_if_missing,
+        &Amulet::RocksDB::Options::set_create_if_missing);
+
+    py::classh<Amulet::RocksDB::ReadOptions> ReadOptions(m, "ReadOptions");
+    ReadOptions.def(
+        py::init());
+
+    py::classh<Amulet::RocksDB::WriteOptions> WriteOptions(m, "WriteOptions");
+    WriteOptions.def(
+        py::init());
+    WriteOptions.def_property(
+        "sync",
+        &Amulet::RocksDB::WriteOptions::get_sync,
+        &Amulet::RocksDB::WriteOptions::set_sync);
+    WriteOptions.def_property(
+        "disable_wal",
+        &Amulet::RocksDB::WriteOptions::get_disable_wal,
+        &Amulet::RocksDB::WriteOptions::set_disable_wal);
+
     // py::classh<Amulet::RocksDBIterator> RocksDBIterator(m, "RocksDBIterator", py::release_gil_before_calling_cpp_dtor());
     // RocksDBIterator.def(
     //     "valid",
@@ -409,12 +340,12 @@ void init_module(py::module m)
         "ZstdCompression",
         Amulet::RocksDB::CompressionType::ZStandardCompression,
         "Zstd compression.");
-     CompressionType.attr("__repr__") = py::cpp_function(
-         [module_name, CompressionType](const py::object& arg) -> py::str {
-             return py::str("{}.{}").format(module_name, CompressionType.attr("__str__")(arg));
-         },
-         py::name("__repr__"),
-         py::is_method(CompressionType));
+    CompressionType.attr("__repr__") = py::cpp_function(
+        [module_name, CompressionType](const py::object& arg) -> py::str {
+            return py::str("{}.{}").format(module_name, CompressionType.attr("__str__")(arg));
+        },
+        py::name("__repr__"),
+        py::is_method(CompressionType));
 
     py::classh<Amulet::RocksDB::RocksDB> RocksDB(m, "RocksDB", py::release_gil_before_calling_cpp_dtor(),
         "A RocksDB database");
@@ -431,6 +362,26 @@ void init_module(py::module m)
             ":param path: The path to the database directory.\n"
             ":param create_if_missing: If True a new database will be created if one does not exist at the given path.\n"
             ":param compression_type: The compression type to use. (Default ZStandardCompression)\n"
+            ":raises: RocksDBException if an error occured."));
+    RocksDB.def(
+        py::init<
+            std::filesystem::path,
+            const Amulet::RocksDB::Options&,
+            const Amulet::RocksDB::ReadOptions&,
+            const Amulet::RocksDB::WriteOptions&>(),
+        py::arg("path"),
+        py::arg("options"),
+        py::arg("read_options"),
+        py::arg("write_options"),
+        py::doc(
+            "Construct a new :class:`RocksDB` instance from the database at the given path.\n"
+            "\n"
+            "A rocksdb database is like a dictionary that only contains bytes as the keys and values and exists entirely on the disk.\n"
+            "\n"
+            ":param path: The path to the database directory.\n"
+            ":param options: The RocksDB Options object.\n"
+            ":param read_options: The RocksDB ReadOptions object.\n"
+            ":param write_options: The RocksDB WriteOptions object.\n"
             ":raises: RocksDBException if an error occured."));
 
     RocksDB.def(

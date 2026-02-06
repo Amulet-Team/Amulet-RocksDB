@@ -27,7 +27,7 @@ namespace RocksDB {
         return *this;
     }
 
-    bool Options::create_if_misssing()
+    bool Options::get_create_if_missing()
     {
         return _impl->create_if_missing;
     }

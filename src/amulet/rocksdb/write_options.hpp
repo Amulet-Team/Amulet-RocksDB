@@ -24,10 +24,10 @@ namespace RocksDB {
         WriteOptions(WriteOptions&&);
         WriteOptions& operator=(WriteOptions&&);
 
-        bool sync();
+        bool get_sync();
         void set_sync(bool);
 
-        bool disable_wal();
+        bool get_disable_wal();
         void set_disable_wal(bool);
     };
 

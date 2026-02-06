@@ -24,7 +24,7 @@ namespace RocksDB {
         Options(Options&&);
         Options& operator=(Options&&);
 
-        bool create_if_misssing();
+        bool get_create_if_missing();
         void set_create_if_missing(bool);
     };
 
