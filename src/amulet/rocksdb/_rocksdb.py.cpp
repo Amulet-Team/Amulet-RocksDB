@@ -170,7 +170,6 @@ void init_module(py::module m)
     std::string module_name = m.attr("__name__").cast<std::string>();
 
     py::register_local_exception<Amulet::RocksDB::RocksDBException>(m, "RocksDBException");
-    // py::register_local_exception<RocksDBEncrypted>(m, "RocksDBEncrypted");
 
     py::classh<Amulet::RocksDB::Options> Options(m, "Options");
     Options.def(
