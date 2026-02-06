@@ -87,12 +87,22 @@ namespace RocksDB {
         // std::unique_ptr<Iterator> create_iterator();
 
         // Get the value for a given key.
+        // Throws KeyError if the key does not exist.
         // Thread safe.
         std::string get(std::string_view key);
+
+        // Check if a key exists in the database.
+        // Note that you are probably better just calling get.
+        bool contains(std::string_view key);
 
         // Set a value for the given key.
         // Thread safe.
         void put(std::string_view key, std::string_view value);
+
+        // Put a batch of values.
+        // Thread safe.
+        void put_batch(
+            const std::list<std::pair<std::string_view, std::optional<std::string_view>>>& batch);
 
         // Delete the given key.
         // Thread safe.

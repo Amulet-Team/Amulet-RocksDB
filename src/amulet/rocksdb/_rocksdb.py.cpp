@@ -9,6 +9,7 @@
 #include <string_view>
 
 #include <amulet/pybind11_extensions/compatibility.hpp>
+#include <amulet/pybind11_extensions/iterable.hpp>
 #include <amulet/pybind11_extensions/iterator.hpp>
 
 #include <amulet/rocksdb/compact_range_options.hpp>
@@ -19,44 +20,6 @@
 
 namespace py = pybind11;
 namespace pyext = Amulet::pybind11_extensions;
-
-namespace PYBIND11_NAMESPACE {
-namespace detail {
-    // template <>
-    // struct type_caster<rocksdb::WriteBatch> {
-    // public:
-    //     PYBIND11_TYPE_CASTER(rocksdb::WriteBatch, const_name("collections.abc.Mapping[bytes, bytes]"));
-
-    //    bool load(handle src, bool)
-    //    {
-    //        auto getitem = src.attr("__getitem__");
-    //        for (auto& key : src) {
-    //            if (!PyBytes_Check(key.ptr())) {
-    //                return false;
-    //            }
-    //            Py_ssize_t key_size = PyBytes_Size(key.ptr());
-    //            const char* key_buffer = PyBytes_AsString(key.ptr());
-    //            if (!key_buffer) {
-    //                return false;
-    //            }
-
-    //            auto val = getitem(key);
-    //            if (val.is_none()) {
-    //                value.Delete(rocksdb::Slice(key_buffer, key_size));
-    //            } else {
-    //                Py_ssize_t val_size = PyBytes_Size(val.ptr());
-    //                const char* val_buffer = PyBytes_AsString(val.ptr());
-    //                if (!val_buffer) {
-    //                    return false;
-    //                }
-    //                value.Put(rocksdb::Slice(key_buffer, key_size), rocksdb::Slice(val_buffer, val_size));
-    //            }
-    //        }
-    //        return true;
-    //    }
-    //};
-}
-} // namespace PYBIND11_NAMESPACE::detail
 
 namespace {
 
@@ -444,20 +407,24 @@ void init_module(py::module m)
         py::arg("value"),
         py::doc("db[b\"key\"] = b\"value\""));
 
-    // RocksDB.def(
-    //     "put_batch",
-    //     [](Amulet::RocksDB& self, rocksdb::WriteBatch batch) {
-    //         if (!self) {
-    //             throw std::runtime_error("The RocksDB database has been closed.");
-    //         }
-    //         rocksdb::Status status = self->Write(self.get_write_options(), &batch);
-    //         if (!status.ok()) {
-    //             throw RocksDBException(status.ToString());
-    //         }
-    //     },
-    //     py::arg("batch"),
-    //     py::doc("Set a group of values in the database."),
-    //     py::call_guard<py::gil_scoped_release>());
+    RocksDB.def(
+        "put_batch",
+        [](Amulet::RocksDB::RocksDB& self, pyext::collections::Iterable<std::pair<py::bytes, std::optional<py::bytes>>> py_batch) {
+            std::list<std::pair<std::string_view, std::optional<std::string_view>>> batch;
+            for (const auto& [key, value] : py_batch) {
+                if (value) {
+                    batch.emplace_back(key, *value);
+                } else {
+                    batch.emplace_back(key, std::nullopt);
+                }
+            }
+            {
+                py::gil_scoped_release nogil;
+                self.put_batch(batch);
+            }
+        },
+        py::arg("batch"),
+        py::doc("Set a group of values in the database."));
 
     // RocksDB.def(
     //     "__contains__",

@@ -142,6 +142,25 @@ namespace RocksDB {
         }
     }
 
+    bool RocksDB::contains(std::string_view key)
+    {
+        if (!_impl) {
+            throw std::runtime_error("RocksDB has been closed");
+        }
+        std::string value;
+        auto status = _impl->db->Get(
+            _impl->read_options,
+            key,
+            &value);
+        if (status.ok()) {
+            return true;
+        } else if (status.IsNotFound()) {
+            return false;
+        } else {
+            throw std::runtime_error("RocksDB Get error: " + status.ToString());
+        }
+    }
+
     void RocksDB::put(std::string_view key, std::string_view value)
     {
         if (!_impl) {
@@ -153,6 +172,19 @@ namespace RocksDB {
             value);
         if (!status.ok()) {
             throw std::runtime_error("RocksDB Put error: " + status.ToString());
+        }
+    }
+
+    void RocksDB::put_batch(
+        const std::list<std::pair<std::string_view, std::optional<std::string_view>>>& batch)
+    {
+        ROCKSDB_NAMESPACE::WriteBatch native_batch;
+        for (const auto& [key, value] : batch) {
+            if (value) {
+                native_batch.Put(key, *value);
+            } else {
+                native_batch.Delete(key);
+            }
         }
     }
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import collections.abc
 import os
 import typing
 
@@ -154,6 +155,13 @@ class RocksDB:
     def put(self, key: bytes, value: bytes) -> None:
         """
         Set a value in the database.
+        """
+
+    def put_batch(
+        self, batch: collections.abc.Iterable[tuple[bytes, bytes | None]]
+    ) -> None:
+        """
+        Set a group of values in the database.
         """
 
 class RocksDBException(Exception):
