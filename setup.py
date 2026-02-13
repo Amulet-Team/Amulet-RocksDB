@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 import platform
 from tempfile import TemporaryDirectory
-from typing import TypeAlias, TYPE_CHECKING
+from typing import TypeAlias, TYPE_CHECKING, Mapping
 
 from setuptools import setup, Extension, Command
 from setuptools.command.build_ext import build_ext
@@ -85,7 +85,7 @@ class CMakeBuild(BuildExt):
 cmdclass["build_ext"] = CMakeBuild  # type: ignore
 
 
-options = {}
+options: Mapping[str, Mapping[str, str]] = {}
 
 if sys.platform == "darwin":
     arch = platform.machine()
