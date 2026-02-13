@@ -48,83 +48,88 @@ class RocksDBTestCase(unittest.TestCase):
         with TemporaryDirectory() as path:
             db = RocksDB(path, True)
 
-            with self.assertRaises(KeyError):
-                db.get(b"random_key")
+            try:
+                with self.assertRaises(KeyError):
+                    db.get(b"random_key")
 
-            key1 = b"key"
-            value1 = b"value"
-            db.put(key1, value1)
-            self.assertEqual(db.get(key1), value1)
+                key1 = b"key"
+                value1 = b"value"
+                db.put(key1, value1)
+                self.assertEqual(db.get(key1), value1)
 
-            key2 = key1 * 1000
-            value2 = value1 * 1000
-            db.put(key2, value2)
-            self.assertEqual(db.get(key2), value2)
-
-            db.close()
+                key2 = key1 * 1000
+                value2 = value1 * 1000
+                db.put(key2, value2)
+                self.assertEqual(db.get(key2), value2)
+            finally:
+                db.close()
 
     def test_put(self) -> None:
         with TemporaryDirectory() as path:
             db = RocksDB(path, True)
 
-            db.put_batch(incr_db.items())
+            try:
+                db.put_batch(incr_db.items())
 
-            for k, v in num_db.items():
-                db.put(k, v)
+                for k, v in num_db.items():
+                    db.put(k, v)
 
-            self.assertEqual(set(db), full_db.keys())
-            self.assertEqual(set(db.keys()), full_db.keys())
-            self.assertEqual(dict(db.items()), full_db)
-
-            db.close()
+                self.assertEqual(set(db), full_db.keys())
+                self.assertEqual(set(db.keys()), full_db.keys())
+                self.assertEqual(dict(db.items()), full_db)
+            finally:
+                db.close()
 
     def test_get_set_item(self) -> None:
         with TemporaryDirectory() as path:
             db = RocksDB(path, True)
 
-            for k, v in num_db.items():
-                db[k] = v
+            try:
+                for k, v in num_db.items():
+                    db[k] = v
 
-            for k, v in num_db.items():
-                self.assertEqual(v, db[k])
-
-            db.close()
+                for k, v in num_db.items():
+                    self.assertEqual(v, db[k])
+            finally:
+                db.close()
 
     def test_contains(self) -> None:
         with TemporaryDirectory() as path:
             db = RocksDB(path, True)
 
-            self.assertFalse(b"test_key2" in db)
+            try:
+                self.assertFalse(b"test_key2" in db)
 
-            db.put(b"test_key2", b"test")
+                db.put(b"test_key2", b"test")
 
-            self.assertTrue(b"test_key2" in db)
-
-            db.close()
+                self.assertTrue(b"test_key2" in db)
+            finally:
+                db.close()
 
     def test_delete(self) -> None:
         with TemporaryDirectory() as path:
             db = RocksDB(path, True)
 
-            self.assertFalse(b"test_key3" in db)
+            try:
+                self.assertFalse(b"test_key3" in db)
 
-            db.put(b"test_key3", b"test")
+                db.put(b"test_key3", b"test")
 
-            self.assertTrue(b"test_key3" in db)
+                self.assertTrue(b"test_key3" in db)
 
-            db.delete(b"test_key3")
+                db.delete(b"test_key3")
 
-            self.assertFalse(b"test_key3" in db)
+                self.assertFalse(b"test_key3" in db)
 
-            db[b"test_key3"] = b"test"
+                db[b"test_key3"] = b"test"
 
-            self.assertTrue(b"test_key3" in db)
+                self.assertTrue(b"test_key3" in db)
 
-            del db[b"test_key3"]
+                del db[b"test_key3"]
 
-            self.assertFalse(b"test_key3" in db)
-
-            db.close()
+                self.assertFalse(b"test_key3" in db)
+            finally:
+                db.close()
 
     def test_exception(self) -> None:
         with TemporaryDirectory() as path:
@@ -164,92 +169,95 @@ class RocksDBTestCase(unittest.TestCase):
     def test_iterate_twice(self) -> None:
         with TemporaryDirectory() as path:
             db = RocksDB(path, True)
-            db.put_batch(
-                (
-                    (b"a", b"1"),
-                    (b"b", b"2"),
-                    (b"c", b"3"),
-                    (b"d", b"4"),
-                    (b"e", b"5"),
-                    (b"f", b"6"),
+            try:
+                db.put_batch(
+                    (
+                        (b"a", b"1"),
+                        (b"b", b"2"),
+                        (b"c", b"3"),
+                        (b"d", b"4"),
+                        (b"e", b"5"),
+                        (b"f", b"6"),
+                    )
                 )
-            )
 
-            it1 = db.items()
-            self.assertEqual((b"a", b"1"), next(it1))
-            self.assertEqual((b"b", b"2"), next(it1))
-            self.assertEqual((b"c", b"3"), next(it1))
-            it2 = db.items()
-            self.assertEqual((b"a", b"1"), next(it2))
-            self.assertEqual((b"d", b"4"), next(it1))
-            self.assertEqual((b"b", b"2"), next(it2))
-
-            db.close()
+                it1 = db.items()
+                self.assertEqual((b"a", b"1"), next(it1))
+                self.assertEqual((b"b", b"2"), next(it1))
+                self.assertEqual((b"c", b"3"), next(it1))
+                it2 = db.items()
+                self.assertEqual((b"a", b"1"), next(it2))
+                self.assertEqual((b"d", b"4"), next(it1))
+                self.assertEqual((b"b", b"2"), next(it2))
+            finally:
+                db.close()
 
     def test_keys_twice(self) -> None:
         with TemporaryDirectory() as path:
             db = RocksDB(path, True)
-            db.put_batch(
-                (
-                    (b"a", b"1"),
-                    (b"b", b"2"),
-                    (b"c", b"3"),
-                    (b"d", b"4"),
-                    (b"e", b"5"),
-                    (b"f", b"6"),
+            try:
+                db.put_batch(
+                    (
+                        (b"a", b"1"),
+                        (b"b", b"2"),
+                        (b"c", b"3"),
+                        (b"d", b"4"),
+                        (b"e", b"5"),
+                        (b"f", b"6"),
+                    )
                 )
-            )
 
-            it1 = db.keys()
-            self.assertEqual(b"a", next(it1))
-            self.assertEqual(b"b", next(it1))
-            self.assertEqual(b"c", next(it1))
-            it2 = db.keys()
-            self.assertEqual(b"a", next(it2))
-            self.assertEqual(b"d", next(it1))
-            self.assertEqual(b"b", next(it2))
-
-            db.close()
+                it1 = db.keys()
+                self.assertEqual(b"a", next(it1))
+                self.assertEqual(b"b", next(it1))
+                self.assertEqual(b"c", next(it1))
+                it2 = db.keys()
+                self.assertEqual(b"a", next(it2))
+                self.assertEqual(b"d", next(it1))
+                self.assertEqual(b"b", next(it2))
+            finally:
+                db.close()
 
     def test_iter_mutate(self) -> None:
         with TemporaryDirectory() as path:
             db = RocksDB(path, True)
-            db.put_batch(
-                (
-                    (b"a", b"1"),
-                    (b"b", b"2"),
-                    (b"c", b"3"),
-                    (b"d", b"4"),
-                    (b"e", b"5"),
-                    (b"f", b"6"),
+            try:
+                db.put_batch(
+                    (
+                        (b"a", b"1"),
+                        (b"b", b"2"),
+                        (b"c", b"3"),
+                        (b"d", b"4"),
+                        (b"e", b"5"),
+                        (b"f", b"6"),
+                    )
                 )
-            )
 
-            it = db.items()
-            self.assertEqual((b"a", b"1"), next(it))
-            self.assertEqual((b"b", b"2"), next(it))
-            self.assertEqual((b"c", b"3"), next(it))
-            db.put(b"d", b"10")
-            self.assertEqual(b"10", db.get(b"d"))
-            self.assertEqual((b"d", b"4"), next(it))
-            self.assertEqual((b"e", b"5"), next(it))
-            self.assertEqual((b"f", b"6"), next(it))
-            with self.assertRaises(StopIteration):
-                next(it)
+                it = db.items()
+                self.assertEqual((b"a", b"1"), next(it))
+                self.assertEqual((b"b", b"2"), next(it))
+                self.assertEqual((b"c", b"3"), next(it))
+                db.put(b"d", b"10")
+                self.assertEqual(b"10", db.get(b"d"))
+                self.assertEqual((b"d", b"4"), next(it))
+                self.assertEqual((b"e", b"5"), next(it))
+                self.assertEqual((b"f", b"6"), next(it))
+                with self.assertRaises(StopIteration):
+                    next(it)
 
-            self.assertEqual(
-                {
-                    b"a": b"1",
-                    b"b": b"2",
-                    b"c": b"3",
-                    b"d": b"10",
-                    b"e": b"5",
-                    b"f": b"6",
-                },
-                dict(db),
-            )
-
-            db.close()
+                self.assertEqual(
+                    {
+                        b"a": b"1",
+                        b"b": b"2",
+                        b"c": b"3",
+                        b"d": b"10",
+                        b"e": b"5",
+                        b"f": b"6",
+                    },
+                    dict(db),
+                )
+            finally:
+                db.close()
 
     def test_lock(self) -> None:
         with TemporaryDirectory() as path:
@@ -315,20 +323,21 @@ class RocksDBTestCase(unittest.TestCase):
     def test_iterator_lifespan(self) -> None:
         with TemporaryDirectory() as path:
             db = RocksDB(path, True)
-            db_ref = weakref.ref(db)
+            try:
+                db_ref = weakref.ref(db)
 
-            # Set values
-            db[b"1"] = b"1"
-            db[b"2"] = b"2"
-            db[b"3"] = b"3"
+                # Set values
+                db[b"1"] = b"1"
+                db[b"2"] = b"2"
+                db[b"3"] = b"3"
 
-            # Get iterators
-            it_k = db.keys()
-            it_v = db.values()
-            it_i = db.items()
-
-            # Close database
-            db.close()
+                # Get iterators
+                it_k = db.keys()
+                it_v = db.values()
+                it_i = db.items()
+            finally:
+                # Close database
+                db.close()
 
             with self.assertRaises(RuntimeError):
                 next(it_k)
@@ -351,65 +360,65 @@ class RocksDBTestCase(unittest.TestCase):
     def test_iterator(self) -> None:
         with TemporaryDirectory() as path:
             db = RocksDB(path, True)
+            try:
+                it1 = db.items()
+                it1.seek_to_first()
+                self.assertFalse(it1.valid())
+                with self.assertRaises(RuntimeError):
+                    it1.key()
+                with self.assertRaises(RuntimeError):
+                    it1.value()
 
-            it1 = db.items()
-            it1.seek_to_first()
-            self.assertFalse(it1.valid())
-            with self.assertRaises(RuntimeError):
-                it1.key()
-            with self.assertRaises(RuntimeError):
-                it1.value()
+                # Set values
+                db[b"1"] = b"2"
+                db[b"3"] = b"4"
+                db[b"5"] = b"6"
 
-            # Set values
-            db[b"1"] = b"2"
-            db[b"3"] = b"4"
-            db[b"5"] = b"6"
+                # The first iterator should remain invalid
+                with self.assertRaises(RuntimeError):
+                    it1.key()
+                with self.assertRaises(RuntimeError):
+                    it1.value()
 
-            # The first iterator should remain invalid
-            with self.assertRaises(RuntimeError):
-                it1.key()
-            with self.assertRaises(RuntimeError):
-                it1.value()
+                it1.seek_to_first()
+                self.assertFalse(it1.valid())
+                with self.assertRaises(RuntimeError):
+                    it1.key()
+                with self.assertRaises(RuntimeError):
+                    it1.value()
 
-            it1.seek_to_first()
-            self.assertFalse(it1.valid())
-            with self.assertRaises(RuntimeError):
-                it1.key()
-            with self.assertRaises(RuntimeError):
-                it1.value()
+                it2 = db.items()
+                it2.seek_to_first()
+                self.assertTrue(it2.valid())
+                self.assertEqual(b"1", it2.key())
+                self.assertEqual(b"2", it2.value())
+                it2.next()
+                self.assertTrue(it2.valid())
+                self.assertEqual(b"3", it2.key())
+                self.assertEqual(b"4", it2.value())
+                it2.next()
+                self.assertTrue(it2.valid())
+                self.assertEqual(b"5", it2.key())
+                self.assertEqual(b"6", it2.value())
+                it2.prev()
+                self.assertTrue(it2.valid())
+                self.assertEqual(b"3", it2.key())
+                self.assertEqual(b"4", it2.value())
+                it2.next()
+                it2.next()
+                self.assertFalse(it2.valid())
 
-            it2 = db.items()
-            it2.seek_to_first()
-            self.assertTrue(it2.valid())
-            self.assertEqual(b"1", it2.key())
-            self.assertEqual(b"2", it2.value())
-            it2.next()
-            self.assertTrue(it2.valid())
-            self.assertEqual(b"3", it2.key())
-            self.assertEqual(b"4", it2.value())
-            it2.next()
-            self.assertTrue(it2.valid())
-            self.assertEqual(b"5", it2.key())
-            self.assertEqual(b"6", it2.value())
-            it2.prev()
-            self.assertTrue(it2.valid())
-            self.assertEqual(b"3", it2.key())
-            self.assertEqual(b"4", it2.value())
-            it2.next()
-            it2.next()
-            self.assertFalse(it2.valid())
+                it2.seek_to_last()
+                self.assertTrue(it2.valid())
+                self.assertEqual(b"5", it2.key())
+                self.assertEqual(b"6", it2.value())
 
-            it2.seek_to_last()
-            self.assertTrue(it2.valid())
-            self.assertEqual(b"5", it2.key())
-            self.assertEqual(b"6", it2.value())
-
-            it2.seek(b"2")
-            self.assertTrue(it2.valid())
-            self.assertEqual(b"3", it2.key())
-            self.assertEqual(b"4", it2.value())
-
-            db.close()
+                it2.seek(b"2")
+                self.assertTrue(it2.valid())
+                self.assertEqual(b"3", it2.key())
+                self.assertEqual(b"4", it2.value())
+            finally:
+                db.close()
 
     def test_thread_write(self) -> None:
         count = 10_000
@@ -422,34 +431,43 @@ class RocksDBTestCase(unittest.TestCase):
         with TemporaryDirectory() as path:
             t1 = -time.time()
             db = RocksDB(path, True)
-            for l in data:
-                for v in l:
-                    db.put(v, v)
-            db.close()
+            try:
+                for l in data:
+                    for v in l:
+                        db.put(v, v)
+            finally:
+                db.close()
             t1 += time.time()
 
             db = RocksDB(path)
-            m1 = dict(db)
-            db.close()
+            try:
+                m1 = dict(db)
+            finally:
+                db.close()
             self.assertEqual(m, m1)
 
         with TemporaryDirectory() as path:
             t2 = -time.time()
             db = RocksDB(path, True)
 
-            def add(values: Iterable[bytes]) -> None:
-                for v in values:
-                    db.put(v, v)
+            try:
 
-            with ThreadPoolExecutor() as executor:
-                executor.map(add, data)
+                def add(values: Iterable[bytes]) -> None:
+                    for v in values:
+                        db.put(v, v)
 
-            db.close()
+                with ThreadPoolExecutor() as executor:
+                    executor.map(add, data)
+            finally:
+                db.close()
+
             t2 += time.time()
 
             db = RocksDB(path)
-            m2 = dict(db)
-            db.close()
+            try:
+                m2 = dict(db)
+            finally:
+                db.close()
             self.assertEqual(m, m2)
 
     def test_thread_read(self) -> None:
@@ -463,51 +481,59 @@ class RocksDBTestCase(unittest.TestCase):
         with TemporaryDirectory() as path:
             db = RocksDB(path, True)
 
-            def add(values: Iterable[bytes]) -> None:
-                for v in values:
-                    db.put(v, v)
+            try:
 
-            with ThreadPoolExecutor() as executor:
-                executor.map(add, data)
+                def add(values: Iterable[bytes]) -> None:
+                    for v in values:
+                        db.put(v, v)
 
-            db.close()
+                with ThreadPoolExecutor() as executor:
+                    executor.map(add, data)
+            finally:
+                db.close()
 
             # Validate the database
             db = RocksDB(path)
-            m2 = dict(db)
-            db.close()
+            try:
+                m2 = dict(db)
+            finally:
+                db.close()
             self.assertEqual(m, m2)
 
             # # Read serial
             db = RocksDB(path)
-            m1 = {}
-            t1 = -time.time()
-            it = db.items()
-            it.seek_to_first()
-            while it.valid():
-                m1[it.key()] = it.value()
-                it.next()
-            t1 += time.time()
-            db.close()
+            try:
+                m1 = {}
+                t1 = -time.time()
+                it = db.items()
+                it.seek_to_first()
+                while it.valid():
+                    m1[it.key()] = it.value()
+                    it.next()
+                t1 += time.time()
+            finally:
+                db.close()
             self.assertEqual(m, m1)
 
             # Read parallel
             db = RocksDB(path)
-            m2 = {}
-            t2 = -time.time()
+            try:
+                m2 = {}
+                t2 = -time.time()
 
-            def read(values: Sequence[bytes]) -> None:
-                it = db.items()
-                it.seek(values[0])
-                for _ in range(count):
-                    m2[it.key()] = it.value()
-                    it.next()
+                def read(values: Sequence[bytes]) -> None:
+                    it = db.items()
+                    it.seek(values[0])
+                    for _ in range(count):
+                        m2[it.key()] = it.value()
+                        it.next()
 
-            with ThreadPoolExecutor() as executor:
-                executor.map(read, data)
+                with ThreadPoolExecutor() as executor:
+                    executor.map(read, data)
 
-            t2 += time.time()
-            db.close()
+                t2 += time.time()
+            finally:
+                db.close()
             self.assertEqual(m, m2)
 
     def test_disable_wal(self) -> None:
@@ -528,15 +554,19 @@ class RocksDBTestCase(unittest.TestCase):
                     options=options,
                     write_options=write_options,
                 )
-                t1 = time.perf_counter()
-                for d in data:
-                    db.put(d, d)
-                db.close()
+                try:
+                    t1 = time.perf_counter()
+                    for d in data:
+                        db.put(d, d)
+                finally:
+                    db.close()
                 t2 = time.perf_counter()
 
                 db2 = RocksDB(path)
-                self.assertEqual(dict(zip(data, data)), dict(db2.items()))
-                db2.close()
+                try:
+                    self.assertEqual(dict(zip(data, data)), dict(db2.items()))
+                finally:
+                    db2.close()
 
             return t2 - t1
 
