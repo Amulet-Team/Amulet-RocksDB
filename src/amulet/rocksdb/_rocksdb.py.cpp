@@ -14,6 +14,7 @@
 
 #include <amulet/rocksdb/compact_range_options.hpp>
 #include <amulet/rocksdb/db.hpp>
+#include <amulet/rocksdb/iterator.hpp>
 #include <amulet/rocksdb/options.hpp>
 #include <amulet/rocksdb/read_options.hpp>
 #include <amulet/rocksdb/write_options.hpp>
@@ -23,144 +24,9 @@ namespace pyext = Amulet::pybind11_extensions;
 
 namespace {
 
-// class RocksDBKeysIterator {
-// private:
-//     std::unique_ptr<Amulet::RocksDBIterator> iterator_ptr;
-//
-// public:
-//     RocksDBKeysIterator(
-//         std::unique_ptr<Amulet::RocksDBIterator> iterator_ptr)
-//         : iterator_ptr(std::move(iterator_ptr))
-//     {
-//     }
-//
-//     py::bytes next()
-//     {
-//         auto& iterator = *iterator_ptr;
-//         if (!iterator) {
-//             throw std::runtime_error("RocksDBIterator has been deleted.");
-//         }
-//         if (!iterator->Valid()) {
-//             throw py::stop_iteration();
-//         }
-//         // Get value.
-//         auto key = py::bytes(iterator->key().ToString());
-//         // Increment for next time.
-//         iterator->Next();
-//         // Return value
-//         return key;
-//     }
-// };
-//
-// class RocksDBValuesIterator {
-// private:
-//     std::unique_ptr<Amulet::RocksDBIterator> iterator_ptr;
-//
-// public:
-//     RocksDBValuesIterator(
-//         std::unique_ptr<Amulet::RocksDBIterator> iterator_ptr)
-//         : iterator_ptr(std::move(iterator_ptr))
-//     {
-//     }
-//
-//     py::bytes next()
-//     {
-//         auto& iterator = *iterator_ptr;
-//         if (!iterator) {
-//             throw std::runtime_error("RocksDBIterator has been deleted.");
-//         }
-//         if (!iterator->Valid()) {
-//             throw py::stop_iteration();
-//         }
-//         // Get value.
-//         auto value = py::bytes(iterator->value().ToString());
-//         // Increment for next time.
-//         iterator->Next();
-//         // Return value
-//         return value;
-//     }
-// };
-//
-// class RocksDBItemsIterator {
-// private:
-//     std::unique_ptr<Amulet::RocksDBIterator> iterator_ptr;
-//
-// public:
-//     RocksDBItemsIterator(
-//         std::unique_ptr<Amulet::RocksDBIterator> iterator_ptr)
-//         : iterator_ptr(std::move(iterator_ptr))
-//     {
-//     }
-//
-//     py::typing::Tuple<py::bytes, py::bytes> next()
-//     {
-//         auto& iterator = *iterator_ptr;
-//         if (!iterator) {
-//             throw std::runtime_error("RocksDBIterator has been deleted.");
-//         }
-//         if (!iterator->Valid()) {
-//             throw py::stop_iteration();
-//         }
-//         // Get value.
-//         auto item = py::make_tuple(
-//             py::bytes(iterator->key().ToString()),
-//             py::bytes(iterator->value().ToString()));
-//         // Increment for next time.
-//         iterator->Next();
-//         // Return value
-//         return item;
-//     }
-// };
-//
-// class RocksDBItemsRangeIterator {
-// private:
-//     std::unique_ptr<Amulet::RocksDBIterator> iterator_ptr;
-//     std::optional<std::string> end;
-//
-// public:
-//     RocksDBItemsRangeIterator(
-//         std::unique_ptr<Amulet::RocksDBIterator> iterator_ptr,
-//         std::string end)
-//         : iterator_ptr(std::move(iterator_ptr))
-//         , end(end)
-//     {
-//     }
-//
-//     py::typing::Tuple<py::bytes, py::bytes> next()
-//     {
-//         auto& iterator = *iterator_ptr;
-//         if (!iterator) {
-//             throw std::runtime_error("RocksDBIterator has been deleted.");
-//         }
-//         if (!iterator->Valid()) {
-//             throw py::stop_iteration();
-//         }
-//         // Get value.
-//         std::string key = iterator->key().ToString();
-//         if (end <= key) {
-//             throw py::stop_iteration();
-//         }
-//         auto item = py::make_tuple(
-//             py::bytes(key),
-//             py::bytes(iterator->value().ToString()));
-//         // Increment for next time.
-//         iterator->Next();
-//         // Return value
-//         return item;
-//     }
-// };
-//
-// static std::unique_ptr<Amulet::RocksDBIterator> get_start_iterator(Amulet::RocksDB& db)
-//{
-//     py::gil_scoped_release nogil;
-//     if (!db) {
-//         throw std::runtime_error("The RocksDB database has been closed.");
-//     }
-//     auto iterator_ptr = db.create_iterator();
-//     auto& iterator = *iterator_ptr;
-//     iterator->SeekToFirst();
-//     return iterator_ptr;
-// }
+class RocksDBKeysIterator : public Amulet::RocksDB::Iterator { };
+class RocksDBValuesIterator : public Amulet::RocksDB::Iterator { };
+class RocksDBItemsIterator : public Amulet::RocksDB::Iterator { };
 
 } // namespace
 
@@ -199,93 +65,95 @@ void init_module(py::module m)
     CompactRangeOptions.def(
         py::init());
 
-    // py::classh<Amulet::RocksDBIterator> RocksDBIterator(m, "RocksDBIterator", py::release_gil_before_calling_cpp_dtor());
-    // RocksDBIterator.def(
-    //     "valid",
-    //     [](Amulet::RocksDBIterator& self) {
-    //         return self && self->Valid();
-    //     },
-    //     py::doc(
-    //         "Is the iterator at a valid entry.\n"
-    //         "If False, calls to other methods may error."));
-    // RocksDBIterator.def(
-    //     "seek_to_first",
-    //     [](Amulet::RocksDBIterator& self) {
-    //         if (!self) {
-    //             throw std::runtime_error("RocksDBIterator has been deleted.");
-    //         }
-    //         self->SeekToFirst();
-    //     },
-    //     py::doc("Seek to the first entry in the database."));
-    // RocksDBIterator.def(
-    //     "seek_to_last",
-    //     [](Amulet::RocksDBIterator& self) {
-    //         if (!self) {
-    //             throw std::runtime_error("RocksDBIterator has been deleted.");
-    //         }
-    //         self->SeekToLast();
-    //     },
-    //     py::doc("Seek to the last entry in the database."));
-    // RocksDBIterator.def(
-    //     "seek",
-    //     [](Amulet::RocksDBIterator& self, rocksdb::Slice target) {
-    //         if (!self) {
-    //             throw std::runtime_error("RocksDBIterator has been deleted.");
-    //         }
-    //         self->Seek(target);
-    //     },
-    //     py::arg("target"),
-    //     py::doc(
-    //         "Seek to the given entry in the database.\n"
-    //         "If the entry does not exist it will seek to the location after."));
-    // RocksDBIterator.def(
-    //     "next",
-    //     [](Amulet::RocksDBIterator& self) {
-    //         if (!self) {
-    //             throw std::runtime_error("RocksDBIterator has been deleted.");
-    //         }
-    //         self->Next();
-    //     },
-    //     py::doc(
-    //         "Seek to the next entry in the database."));
-    // RocksDBIterator.def(
-    //     "prev",
-    //     [](Amulet::RocksDBIterator& self) {
-    //         if (!self) {
-    //             throw std::runtime_error("RocksDBIterator has been deleted.");
-    //         }
-    //         self->Prev();
-    //     },
-    //     py::doc(
-    //         "Seek to the previous entry in the database."));
-    // RocksDBIterator.def(
-    //     "key",
-    //     [](Amulet::RocksDBIterator& self) {
-    //         if (!self) {
-    //             throw std::runtime_error("RocksDBIterator has been deleted.");
-    //         }
-    //         if (!self->Valid()) {
-    //             throw std::runtime_error("RocksDBIterator does not point to a valid value.");
-    //         }
-    //         return py::bytes(self->key().data(), self->key().size());
-    //     },
-    //     py::doc(
-    //         "Get the key of the current entry in the database.\n"
-    //         ":raises: runtime_error if iterator is not valid."));
-    // RocksDBIterator.def(
-    //     "value",
-    //     [](Amulet::RocksDBIterator& self) {
-    //         if (!self) {
-    //             throw std::runtime_error("RocksDBIterator has been deleted.");
-    //         }
-    //         if (!self->Valid()) {
-    //             throw std::runtime_error("RocksDBIterator does not point to a valid value.");
-    //         }
-    //         return py::bytes(self->value().data(), self->value().size());
-    //     },
-    //     py::doc(
-    //         "Get the value of the current entry in the database.\n"
-    //         ":raises: runtime_error if iterator is not valid."));
+    py::classh<Amulet::RocksDB::Iterator> BaseIterator(m, "BaseIterator", py::release_gil_before_calling_cpp_dtor());
+    BaseIterator.def(
+        "valid",
+        &Amulet::RocksDB::Iterator::is_valid,
+        py::doc(
+            "Is the iterator at a valid entry.\n"
+            "If False, calls to other methods may error."));
+    BaseIterator.def(
+        "seek_to_first",
+        &Amulet::RocksDB::Iterator::seek_to_first,
+        py::doc("Seek to the first entry in the database."));
+    BaseIterator.def(
+        "seek_to_last",
+        &Amulet::RocksDB::Iterator::seek_to_last,
+        py::doc("Seek to the last entry in the database."));
+    BaseIterator.def(
+        "seek",
+        [](Amulet::RocksDB::Iterator& self, py::bytes target) {
+            self.seek(target);
+        },
+        py::arg("target"),
+        py::doc(
+            "Seek to the given entry in the database.\n"
+            "If the entry does not exist it will seek to the location after."));
+    BaseIterator.def(
+        "next",
+        &Amulet::RocksDB::Iterator::next,
+        py::doc(
+            "Seek to the next entry in the database."));
+    BaseIterator.def(
+        "prev",
+        &Amulet::RocksDB::Iterator::prev,
+        py::doc(
+            "Seek to the previous entry in the database."));
+    BaseIterator.def(
+        "key",
+        [](Amulet::RocksDB::Iterator& self) {
+            return py::bytes(self.key());
+        },
+        py::doc(
+            "Get the key of the current entry in the database.\n"
+            ":raises: runtime_error if iterator is not valid."));
+    BaseIterator.def(
+        "value",
+        [](Amulet::RocksDB::Iterator& self) {
+            return py::bytes(self.value());
+        },
+        py::doc(
+            "Get the value of the current entry in the database.\n"
+            ":raises: runtime_error if iterator is not valid."));
+    BaseIterator.def(
+        "__iter__",
+        [](py::object self) { return self; });
+
+    py::classh<RocksDBKeysIterator, Amulet::RocksDB::Iterator> KeysIterator(m, "KeysIterator", py::release_gil_before_calling_cpp_dtor());
+    KeysIterator.def(
+        "__next__",
+        [](RocksDBKeysIterator& self) {
+            if (self.is_valid()) {
+                auto obj = py::bytes(self.key());
+                self.next();
+                return obj;
+            }
+            throw py::stop_iteration();
+        });
+
+    py::classh<RocksDBValuesIterator, Amulet::RocksDB::Iterator> ValuesIterator(m, "ValuesIterator", py::release_gil_before_calling_cpp_dtor());
+    ValuesIterator.def(
+        "__next__",
+        [](RocksDBValuesIterator& self) {
+            if (self.is_valid()) {
+                auto obj = py::bytes(self.key());
+                self.next();
+                return obj;
+            }
+            throw py::stop_iteration();
+        });
+
+    py::classh<RocksDBItemsIterator, Amulet::RocksDB::Iterator> ItemsIterator(m, "ItemsIterator", py::release_gil_before_calling_cpp_dtor());
+    ItemsIterator.def(
+        "__next__",
+        [](RocksDBItemsIterator& self) -> py::typing::Tuple<py::bytes, py::bytes> {
+            if (self.is_valid()) {
+                auto obj = py::make_tuple(py::bytes(self.key()), py::bytes(self.value()));
+                self.next();
+                return obj;
+            }
+            throw py::stop_iteration();
+        });
 
     py::enum_<Amulet::RocksDB::CompressionType> CompressionType(m, "CompressionType");
     CompressionType.value(
@@ -483,78 +351,39 @@ void init_module(py::module m)
         py::arg("key"),
         py::doc("del db[b\"key\"]"));
 
-    // RocksDB.def(
-    //     "create_iterator",
-    //     &Amulet::RocksDB::create_iterator,
-    //     py::doc("Create a new rocksdb Iterator."),
-    //     py::call_guard<py::gil_scoped_release>());
+    RocksDB.def(
+        "__iter__",
+        [](Amulet::RocksDB::RocksDB& self) {
+            auto* it = self.create_iterator().release();
+            it->seek_to_first();
+            return reinterpret_cast<RocksDBKeysIterator*>(it);
+        });
+    RocksDB.def(
+        "keys",
+        [](Amulet::RocksDB::RocksDB& self) {
+            auto* it = self.create_iterator().release();
+            it->seek_to_first();
+            return reinterpret_cast<RocksDBKeysIterator*>(it);
+        },
+        py::doc("An iterable of all keys in the database."));
 
-    // RocksDB.def(
-    //     "iterate",
-    //     [](
-    //         Amulet::RocksDB& self,
-    //         std::optional<py::bytes> start,
-    //         std::optional<py::bytes> end) {
-    //         if (!self) {
-    //             throw std::runtime_error("The RocksDB database has been closed.");
-    //         }
-    //         std::unique_ptr<Amulet::RocksDBIterator> iterator_ptr;
-    //         {
-    //             py::gil_scoped_release nogil;
-    //             iterator_ptr = self.create_iterator();
-    //         }
-    //         auto& iterator = *iterator_ptr;
-    //         if (start) {
-    //             iterator->Seek(start->cast<std::string>());
-    //         } else {
-    //             iterator->SeekToFirst();
-    //         }
+    RocksDB.def(
+        "values",
+        [](Amulet::RocksDB::RocksDB& self) {
+            auto* it = self.create_iterator().release();
+            it->seek_to_first();
+            return reinterpret_cast<RocksDBValuesIterator*>(it);
+        },
+        py::doc("An iterable of all values in the database."));
 
-    //        if (end) {
-    //            return pyext::make_iterator(
-    //                RocksDBItemsRangeIterator(std::move(iterator_ptr), end->cast<std::string>()));
-    //        } else {
-    //            return pyext::make_iterator(
-    //                RocksDBItemsIterator(std::move(iterator_ptr)));
-    //        }
-    //    },
-    //    py::arg("start") = py::none(),
-    //    py::arg("end") = py::none(),
-    //    py::doc(
-    //        "Iterate through all keys and data that exist between the given keys.\n"
-    //        "\n"
-    //        ":param start: The key to start at. Leave as None to start at the beginning.\n"
-    //        ":param end: The key to end at. Leave as None to finish at the end."));
-
-    // RocksDB.def(
-    //     "__iter__",
-    //     [](Amulet::RocksDB& self) {
-    //         return pyext::make_iterator(
-    //             RocksDBKeysIterator(get_start_iterator(self)));
-    //     });
-    // RocksDB.def(
-    //     "keys",
-    //     [](Amulet::RocksDB& self) {
-    //         return pyext::make_iterator(
-    //             RocksDBKeysIterator(get_start_iterator(self)));
-    //     },
-    //     py::doc("An iterable of all keys in the database."));
-
-    // RocksDB.def(
-    //     "values",
-    //     [](Amulet::RocksDB& self) {
-    //         return pyext::make_iterator(
-    //             RocksDBValuesIterator(get_start_iterator(self)));
-    //     },
-    //     py::doc("An iterable of all values in the database."));
-
-    // RocksDB.def(
-    //     "items",
-    //     [](Amulet::RocksDB& self) {
-    //         return pyext::make_iterator(
-    //             RocksDBItemsIterator(get_start_iterator(self)));
-    //     },
-    //     py::doc("An iterable of all items in the database."));
+    RocksDB.def(
+        "items",
+        [](Amulet::RocksDB::RocksDB& self) {
+            auto* it = self.create_iterator().release();
+            it->seek_to_first();
+            return reinterpret_cast<RocksDBItemsIterator*>(it);
+        },
+        py::doc("An iterable of all items in the database."));
 }
 
 PYBIND11_MODULE(_rocksdb, m)

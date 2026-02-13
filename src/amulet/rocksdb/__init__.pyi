@@ -7,15 +7,65 @@ import typing
 from . import _rocksdb, _version
 
 __all__: list[str] = [
+    "BaseIterator",
     "CompactRangeOptions",
     "CompressionType",
+    "ItemsIterator",
+    "KeysIterator",
     "Options",
     "ReadOptions",
     "RocksDB",
     "RocksDBException",
+    "ValuesIterator",
     "WriteOptions",
     "compiler_config",
 ]
+
+class BaseIterator:
+    def __iter__(self) -> typing.Any: ...
+    def key(self) -> bytes:
+        """
+        Get the key of the current entry in the database.
+        :raises: runtime_error if iterator is not valid.
+        """
+
+    def next(self) -> None:
+        """
+        Seek to the next entry in the database.
+        """
+
+    def prev(self) -> None:
+        """
+        Seek to the previous entry in the database.
+        """
+
+    def seek(self, target: bytes) -> None:
+        """
+        Seek to the given entry in the database.
+        If the entry does not exist it will seek to the location after.
+        """
+
+    def seek_to_first(self) -> None:
+        """
+        Seek to the first entry in the database.
+        """
+
+    def seek_to_last(self) -> None:
+        """
+        Seek to the last entry in the database.
+        """
+
+    def valid(self) -> bool:
+        """
+        Is the iterator at a valid entry.
+        If False, calls to other methods may error.
+        """
+
+    def value(self) -> bytes:
+        """
+        Get the value of the current entry in the database.
+        :raises: runtime_error if iterator is not valid.
+        """
 
 class CompactRangeOptions:
     def __init__(self) -> None: ...
@@ -50,6 +100,12 @@ class CompressionType:
     def name(self) -> str: ...
     @property
     def value(self) -> int: ...
+
+class ItemsIterator(BaseIterator):
+    def __next__(self) -> tuple[bytes, bytes]: ...
+
+class KeysIterator(BaseIterator):
+    def __next__(self) -> bytes: ...
 
 class Options:
     create_if_missing: bool
@@ -114,6 +170,7 @@ class RocksDB:
         :raises: RocksDBException if an error occured.
         """
 
+    def __iter__(self) -> KeysIterator: ...
     def __setitem__(self, key: bytes, value: bytes) -> None:
         """
         db[b"key"] = b"value"
@@ -153,6 +210,16 @@ class RocksDB:
         :raises: RocksDBException on other error.
         """
 
+    def items(self) -> ItemsIterator:
+        """
+        An iterable of all items in the database.
+        """
+
+    def keys(self) -> KeysIterator:
+        """
+        An iterable of all keys in the database.
+        """
+
     def put(self, key: bytes, value: bytes) -> None:
         """
         Set a value in the database.
@@ -165,8 +232,16 @@ class RocksDB:
         Set a group of values in the database.
         """
 
+    def values(self) -> ValuesIterator:
+        """
+        An iterable of all values in the database.
+        """
+
 class RocksDBException(Exception):
     pass
+
+class ValuesIterator(BaseIterator):
+    def __next__(self) -> bytes: ...
 
 class WriteOptions:
     disable_wal: bool
