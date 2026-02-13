@@ -31,10 +31,7 @@ class CMakeBuild(BuildExt):
         import pybind11
         import amulet.pybind11_extensions
 
-        ext_dir = (
-            (Path.cwd() / self.get_ext_fullpath("")).parent.resolve()
-            / "rocksdb"
-        )
+        ext_dir = (Path.cwd() / self.get_ext_fullpath("")).parent.resolve() / "rocksdb"
         rocksdb_src_dir = (
             Path.cwd() / "src" / "amulet" / "rocksdb" if self.editable_mode else ext_dir
         )
