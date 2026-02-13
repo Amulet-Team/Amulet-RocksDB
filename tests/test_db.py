@@ -33,7 +33,11 @@ class RocksDBTestCase(unittest.TestCase):
     def test_create_ldb(self) -> None:
         with TemporaryDirectory() as path:
             db = RocksDB(path, True)
-            db.close()
+            try:
+                db_ref = weakref.ref(db)
+                self.assertIs(db, db_ref())
+            finally:
+                db.close()
 
     def test_create_fail(self) -> None:
         with self.assertRaises(RocksDBException):
