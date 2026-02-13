@@ -297,10 +297,12 @@ void init_module(py::module m)
         "__contains__",
         [](Amulet::RocksDB::RocksDB& self, py::bytes key) {
             std::string_view key_view = key;
-            return self.contains(key_view);
+            {
+                py::gil_scoped_release nogil;
+                return self.contains(key_view);
+            }
         },
-        py::arg("key"),
-        py::call_guard<py::gil_scoped_release>());
+        py::arg("key"));
 
     auto get = [](Amulet::RocksDB::RocksDB& self, py::bytes key) {
         std::string_view key_view = key;
@@ -357,7 +359,8 @@ void init_module(py::module m)
             auto* it = self.create_iterator().release();
             it->seek_to_first();
             return reinterpret_cast<RocksDBKeysIterator*>(it);
-        });
+        },
+        py::call_guard<py::gil_scoped_release>());
     RocksDB.def(
         "keys",
         [](Amulet::RocksDB::RocksDB& self) {
@@ -365,7 +368,8 @@ void init_module(py::module m)
             it->seek_to_first();
             return reinterpret_cast<RocksDBKeysIterator*>(it);
         },
-        py::doc("An iterable of all keys in the database."));
+        py::doc("An iterable of all keys in the database."),
+        py::call_guard<py::gil_scoped_release>());
 
     RocksDB.def(
         "values",
@@ -374,7 +378,8 @@ void init_module(py::module m)
             it->seek_to_first();
             return reinterpret_cast<RocksDBValuesIterator*>(it);
         },
-        py::doc("An iterable of all values in the database."));
+        py::doc("An iterable of all values in the database."),
+        py::call_guard<py::gil_scoped_release>());
 
     RocksDB.def(
         "items",
@@ -383,7 +388,8 @@ void init_module(py::module m)
             it->seek_to_first();
             return reinterpret_cast<RocksDBItemsIterator*>(it);
         },
-        py::doc("An iterable of all items in the database."));
+        py::doc("An iterable of all items in the database."),
+        py::call_guard<py::gil_scoped_release>());
 }
 
 PYBIND11_MODULE(_rocksdb, m)
