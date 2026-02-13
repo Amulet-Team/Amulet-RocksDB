@@ -37,6 +37,22 @@ void init_module(py::module m)
 
     py::register_local_exception<Amulet::RocksDB::RocksDBException>(m, "RocksDBException");
 
+    py::enum_<Amulet::RocksDB::CompressionType> CompressionType(m, "CompressionType");
+    CompressionType.value(
+        "NoCompression",
+        Amulet::RocksDB::CompressionType::NoCompression,
+        "No compression.");
+    CompressionType.value(
+        "ZstdCompression",
+        Amulet::RocksDB::CompressionType::ZStandardCompression,
+        "Zstd compression.");
+    CompressionType.attr("__repr__") = py::cpp_function(
+        [module_name, CompressionType](const py::object& arg) -> py::str {
+            return py::str("{}.{}").format(module_name, CompressionType.attr("__str__")(arg));
+        },
+        py::name("__repr__"),
+        py::is_method(CompressionType));
+
     py::classh<Amulet::RocksDB::Options> Options(m, "Options");
     Options.def(
         py::init());
@@ -44,6 +60,10 @@ void init_module(py::module m)
         "create_if_missing",
         &Amulet::RocksDB::Options::get_create_if_missing,
         &Amulet::RocksDB::Options::set_create_if_missing);
+    Options.def_property(
+        "compression_type",
+        &Amulet::RocksDB::Options::get_compression_type,
+        &Amulet::RocksDB::Options::set_compression_type);
 
     py::classh<Amulet::RocksDB::ReadOptions> ReadOptions(m, "ReadOptions");
     ReadOptions.def(
@@ -160,22 +180,6 @@ void init_module(py::module m)
             }
             throw py::stop_iteration();
         });
-
-    py::enum_<Amulet::RocksDB::CompressionType> CompressionType(m, "CompressionType");
-    CompressionType.value(
-        "NoCompression",
-        Amulet::RocksDB::CompressionType::NoCompression,
-        "No compression.");
-    CompressionType.value(
-        "ZstdCompression",
-        Amulet::RocksDB::CompressionType::ZStandardCompression,
-        "Zstd compression.");
-    CompressionType.attr("__repr__") = py::cpp_function(
-        [module_name, CompressionType](const py::object& arg) -> py::str {
-            return py::str("{}.{}").format(module_name, CompressionType.attr("__str__")(arg));
-        },
-        py::name("__repr__"),
-        py::is_method(CompressionType));
 
     py::classh<Amulet::RocksDB::RocksDB> RocksDB(m, "RocksDB", py::release_gil_before_calling_cpp_dtor(),
         "A RocksDB database");

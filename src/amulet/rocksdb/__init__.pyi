@@ -108,6 +108,7 @@ class KeysIterator(BaseIterator):
     def __next__(self) -> bytes: ...
 
 class Options:
+    compression_type: CompressionType
     create_if_missing: bool
     def __init__(self) -> None: ...
 
