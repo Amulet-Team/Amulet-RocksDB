@@ -1,5 +1,6 @@
 #include <filesystem>
 #include <memory>
+#include <set>
 #include <string>
 #include <string_view>
 
@@ -7,6 +8,7 @@
 
 #include "compact_range_options.hpp"
 #include "db.hpp"
+#include "iterator.hpp"
 #include "options.hpp"
 #include "read_options.hpp"
 #include "write_options.hpp"
@@ -19,7 +21,17 @@ namespace RocksDB {
         ROCKSDB_NAMESPACE::ReadOptions read_options;
         ROCKSDB_NAMESPACE::WriteOptions write_options;
         ROCKSDB_NAMESPACE::CompactRangeOptions compact_range_options;
+        std::set<Iterator*> iterators;
+        std::recursive_mutex iterators_mutex;
     };
+
+    static void remove_iterator(void* _impl_voidp, void* it_voidp)
+    {
+        auto* _impl = reinterpret_cast<RocksDBImpl*>(_impl_voidp);
+        auto* it = reinterpret_cast<Iterator*>(it_voidp);
+        std::lock_guard lock(_impl->iterators_mutex);
+        _impl->iterators.erase(it);
+    }
 
     RocksDB::RocksDB(
         std::filesystem::path path,
@@ -101,8 +113,15 @@ namespace RocksDB {
     void RocksDB::close()
     {
         if (_impl) {
-            // Destroy all iterators.
-            // TODO
+            {
+                std::lock_guard lock(_impl->iterators_mutex);
+                // Create a copy. The delete callback will mutate the original.
+                auto iterators = _impl->iterators;
+                for (auto& it : iterators) {
+                    it->destroy();
+                }
+                assert(_impl->iterators.empty());
+            }
 
             auto status = _impl->db->Close();
             if (status.IsAborted()) {
@@ -119,9 +138,23 @@ namespace RocksDB {
         return _impl != nullptr;
     }
 
-    // std::unique_ptr<Iterator> RocksDB::create_iterator()
-    //{
-    // }
+    std::unique_ptr<Iterator> RocksDB::create_iterator()
+    {
+        if (!_impl) {
+            throw std::runtime_error("RocksDB has been closed");
+        }
+
+        std::lock_guard lock(_impl->iterators_mutex);
+
+        auto* raw_it = _impl->db->NewIterator(_impl->read_options);
+        auto* it = new Iterator(raw_it);
+
+        raw_it->RegisterCleanup(remove_iterator, _impl, it);
+
+        _impl->iterators.insert(it);
+
+        return std::unique_ptr<Iterator>(it);
+    }
 
     std::string RocksDB::get(std::string_view key)
     {

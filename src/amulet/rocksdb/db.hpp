@@ -84,7 +84,7 @@ namespace RocksDB {
 
         // Create an iterator that is automatically destroyed when the database is closed.
         // You may use raw iterators but you must ensure the database outlives the iterator.
-        // std::unique_ptr<Iterator> create_iterator();
+        std::unique_ptr<Iterator> create_iterator();
 
         // Get the value for a given key.
         // Throws KeyError if the key does not exist.
