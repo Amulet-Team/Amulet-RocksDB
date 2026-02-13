@@ -9,7 +9,13 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from collections.abc import Iterable, Sequence
 
-from amulet.rocksdb import RocksDB, RocksDBException
+from amulet.rocksdb import (
+    RocksDB,
+    RocksDBException,
+    Options,
+    WriteOptions,
+    CompressionType,
+)
 
 num_keys = [struct.pack("<Q", i) for i in range(10_000)]
 num_db = dict(zip(num_keys, num_keys))
@@ -499,6 +505,38 @@ class RocksDBTestCase(unittest.TestCase):
             t2 += time.time()
             db.close()
             self.assertEqual(m, m2)
+
+    def test_disable_wal(self) -> None:
+        # Test that disabling the Write Ahead Log (WAL) is actually faster
+        data = [struct.pack(">Q", i) * 8 for i in range(100_000)]
+
+        def write_read(wal: bool) -> float:
+            with TemporaryDirectory() as path:
+                options = Options()
+                options.create_if_missing = True
+                options.compression_type = CompressionType.ZstdCompression
+                write_options = WriteOptions()
+                if not wal:
+                    write_options.sync = False
+                    write_options.disable_wal = True
+                db = RocksDB(
+                    path,
+                    options=options,
+                    write_options=write_options,
+                )
+                t1 = time.perf_counter()
+                for d in data:
+                    db.put(d, d)
+                db.close()
+                t2 = time.perf_counter()
+
+                db2 = RocksDB(path)
+                self.assertEqual(dict(zip(data, data)), dict(db2.items()))
+                db2.close()
+
+            return t2 - t1
+
+        self.assertLess(write_read(False), write_read(True))
 
 
 if __name__ == "__main__":
