@@ -200,22 +200,23 @@ void init_module(py::module m)
     RocksDB.def(
         py::init([](
                      std::filesystem::path path,
-                     Amulet::RocksDB::Options& options,
-                     Amulet::RocksDB::ReadOptions& read_options,
-                     Amulet::RocksDB::WriteOptions& write_options,
-                     Amulet::RocksDB::CompactRangeOptions& compact_range_options) {
+                     std::optional<std::reference_wrapper<Amulet::RocksDB::Options>> options,
+                     std::optional<std::reference_wrapper<Amulet::RocksDB::ReadOptions>> read_options,
+                     std::optional<std::reference_wrapper<Amulet::RocksDB::WriteOptions>> write_options,
+                     std::optional<std::reference_wrapper<Amulet::RocksDB::CompactRangeOptions>> compact_range_options) {
             return std::make_unique<Amulet::RocksDB::RocksDB>(
                 std::move(path),
-                std::move(options),
-                std::move(read_options),
-                std::move(write_options),
-                std::move(compact_range_options));
+                options ? std::move(options->get()) : Amulet::RocksDB::Options(),
+                read_options ? std::move(read_options->get()) : Amulet::RocksDB::ReadOptions(),
+                write_options ? std::move(write_options->get()) : Amulet::RocksDB::WriteOptions(),
+                compact_range_options ? std::move(compact_range_options->get()) : Amulet::RocksDB::CompactRangeOptions());
         }),
         py::arg("path"),
-        py::arg("options"),
-        py::arg("read_options"),
-        py::arg("write_options"),
-        py::arg("compact_range_options"),
+        py::kw_only(),
+        py::arg("options") = py::none(),
+        py::arg("read_options") = py::none(),
+        py::arg("write_options") = py::none(),
+        py::arg("compact_range_options") = py::none(),
         py::doc(
             "Construct a new :class:`RocksDB` instance from the database at the given path.\n"
             "\n"

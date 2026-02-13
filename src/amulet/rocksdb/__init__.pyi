@@ -153,10 +153,11 @@ class RocksDB:
     def __init__(
         self,
         path: os.PathLike | str | bytes,
-        options: Options,
-        read_options: ReadOptions,
-        write_options: WriteOptions,
-        compact_range_options: CompactRangeOptions,
+        *,
+        options: Options | None = None,
+        read_options: ReadOptions | None = None,
+        write_options: WriteOptions | None = None,
+        compact_range_options: CompactRangeOptions | None = None,
     ) -> None:
         """
         Construct a new :class:`RocksDB` instance from the database at the given path.
