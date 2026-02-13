@@ -211,6 +211,9 @@ namespace RocksDB {
     void RocksDB::put_batch(
         const std::list<std::pair<std::string_view, std::optional<std::string_view>>>& batch)
     {
+        if (!_impl) {
+            throw std::runtime_error("RocksDB has been closed");
+        }
         ROCKSDB_NAMESPACE::WriteBatch native_batch;
         for (const auto& [key, value] : batch) {
             if (value) {
@@ -219,6 +222,9 @@ namespace RocksDB {
                 native_batch.Delete(key);
             }
         }
+        _impl->db->Write(
+            _impl->write_options,
+            &native_batch);
     }
 
     void RocksDB::del(std::string_view key)
