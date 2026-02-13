@@ -148,7 +148,7 @@ def patch_stubgen() -> None:
 
 def main() -> None:
     root_path = os.path.dirname(os.path.dirname(__file__))
-    src_path = os.path.join(root_path, "src")
+    src_path = os.path.join(root_path, "src", "amulet")
     amulet_rocksdb_path = get_package_dir("amulet.rocksdb")
     tests_path = os.path.join(root_path, "tests")
 
@@ -157,7 +157,7 @@ def main() -> None:
 
     # out_dir, module_dir, module_name
     modules: list[tuple[str, str, str]] = [
-        (src_path, amulet_rocksdb_path, "amulet.rocksdb"),
+        (src_path, amulet_rocksdb_path, "rocksdb"),
     ]
 
     # Remove all existing stub files

@@ -81,13 +81,13 @@ class CompressionType:
 
     NoCompression: typing.ClassVar[
         CompressionType
-    ]  # value = amulet.rocksdb.CompressionType.NoCompression
+    ]  # value = rocksdb.CompressionType.NoCompression
     ZstdCompression: typing.ClassVar[
         CompressionType
-    ]  # value = amulet.rocksdb.CompressionType.ZstdCompression
+    ]  # value = rocksdb.CompressionType.ZstdCompression
     __members__: typing.ClassVar[
         dict[str, CompressionType]
-    ]  # value = {'NoCompression': amulet.rocksdb.CompressionType.NoCompression, 'ZstdCompression': amulet.rocksdb.CompressionType.ZstdCompression}
+    ]  # value = {'NoCompression': rocksdb.CompressionType.NoCompression, 'ZstdCompression': rocksdb.CompressionType.ZstdCompression}
     def __eq__(self, other: typing.Any) -> bool: ...
     def __hash__(self) -> int: ...
     def __index__(self) -> int: ...

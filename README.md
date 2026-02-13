@@ -8,7 +8,7 @@ A pybind11 wrapper for RocksDB.
 
 ## Use
 ```py
-from amulet.rocksdb import RocksDB
+from rocksdb import RocksDB
 
 create_if_missing = True  # optional input. Default False.
 db = RocksDB("path/to/db", create_if_missing)

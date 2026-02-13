@@ -9,7 +9,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from collections.abc import Iterable, Sequence
 
-from amulet.rocksdb import (
+from rocksdb import (
     RocksDB,
     RocksDBException,
     Options,

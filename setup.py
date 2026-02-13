@@ -33,7 +33,6 @@ class CMakeBuild(BuildExt):
 
         ext_dir = (
             (Path.cwd() / self.get_ext_fullpath("")).parent.resolve()
-            / "amulet"
             / "rocksdb"
         )
         rocksdb_src_dir = (
@@ -97,7 +96,7 @@ if sys.platform == "darwin":
 setup(
     version=versioneer.get_version(),
     cmdclass=cmdclass,
-    ext_modules=[Extension("amulet.rocksdb._rocksdb", [])]
+    ext_modules=[Extension("rocksdb._rocksdb", [])]
     * (not os.environ.get("AMULET_SKIP_COMPILE", None)),
     install_requires=requirements.get_runtime_dependencies(),
     options=options,
