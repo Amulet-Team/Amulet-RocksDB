@@ -258,49 +258,49 @@ class RocksDBTestCase(unittest.TestCase):
             finally:
                 db.close()
 
-    # def test_compact(self) -> None:
-    #     with TemporaryDirectory() as path:
-    #         db = RocksDB(path, True)
-    #         try:
-    #             for _ in range(100_000):
-    #                 key = str(uuid4()).encode()
-    #                 db.put(key, key)
-    #         finally:
-    #             db.close()
-    #
-    #         self.assertGreater(get_directory_size(path), 1_000_000)
-    #
-    #         db = RocksDB(path)
-    #         try:
-    #             for key in db.keys():
-    #                 db.delete(key)
-    #             db.compact()
-    #         finally:
-    #             db.close()
-    #
-    #         self.assertLess(get_directory_size(path), 10_000)
+    def test_compact(self) -> None:
+        with TemporaryDirectory() as path:
+            db = RocksDB(path, True)
+            try:
+                for _ in range(500_000):
+                    key = str(uuid4()).encode()
+                    db.put(key, key)
+            finally:
+                db.close()
 
-    # def test_corrupt(self) -> None:
-    #     """Test how the library handles a corrupt db."""
-    #     with TemporaryDirectory() as path:
-    #         db = RocksDB(path, True)
-    #         try:
-    #             for _ in range(100_000):
-    #                 key = str(uuid4()).encode()
-    #                 db.put(key, key)
-    #         finally:
-    #             db.close()
-    #
-    #         # delete one of the ldb files
-    #         os.remove(next(glob.iglob(os.path.join(glob.escape(path), "*.ldb"))))
-    #
-    #         db = RocksDB(path, True)
-    #         try:
-    #             key_count = len(list(db.keys()))
-    #             self.assertLessEqual(key_count, 100_000)
-    #             self.assertGreater(key_count, 10)
-    #         finally:
-    #             db.close()
+            self.assertGreater(get_directory_size(path), 1_000_000)
+
+            db = RocksDB(path)
+            try:
+                for key in db.keys():
+                    db.delete(key)
+                db.compact()
+            finally:
+                db.close()
+
+            self.assertLess(get_directory_size(path), 200_000)
+
+    def test_corrupt(self) -> None:
+        """Test how the library handles a corrupt db."""
+        with TemporaryDirectory() as path:
+            db = RocksDB(path, True)
+            try:
+                for _ in range(1_000_000):
+                    key = str(uuid4()).encode()
+                    db.put(key, key)
+            finally:
+                db.close()
+
+            # delete one of the ldb files
+            os.remove(next(glob.iglob(os.path.join(glob.escape(path), "*.log"))))
+
+            db = RocksDB(path, True)
+            try:
+                key_count = len(list(db.keys()))
+                self.assertLessEqual(key_count, 1_000_000)
+                self.assertGreater(key_count, 10)
+            finally:
+                db.close()
 
     def test_iterator_lifespan(self) -> None:
         with TemporaryDirectory() as path:
