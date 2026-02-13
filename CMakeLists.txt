@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 4.1)
 
 project(amulet_rocksdb LANGUAGES CXX)
 
@@ -24,6 +24,8 @@ endif()
 if (MSVC)
     add_definitions("/MP")
 endif()
+
+find_package(Python3 COMPONENTS Interpreter Development)
 
 # Find libraries
 if (NOT TARGET pybind11::module)

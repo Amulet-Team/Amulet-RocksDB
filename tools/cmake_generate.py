@@ -33,7 +33,7 @@ def main() -> None:
         [
             "cmake",
             *platform_args,
-            f"-DPYTHON_EXECUTABLE={sys.executable}",
+            f"-DPython3_ROOT_DIR={sys.base_prefix}",
             f"-Dpybind11_DIR={fix_path(pybind11.get_cmake_dir())}",
             f"-Damulet_pybind11_extensions_DIR={fix_path(amulet.pybind11_extensions.__path__[0])}",
             f"-Damulet_rocksdb_DIR={fix_path(os.path.join(RootDir, 'src', 'amulet', 'rocksdb'))}",
