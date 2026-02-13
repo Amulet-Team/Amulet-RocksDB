@@ -102,6 +102,9 @@ void init_module(py::module m)
     BaseIterator.def(
         "key",
         [](Amulet::RocksDB::Iterator& self) {
+            if (!self.is_valid()) {
+                throw std::runtime_error("Iterator is not valid");
+            }
             return py::bytes(self.key());
         },
         py::doc(
@@ -110,6 +113,9 @@ void init_module(py::module m)
     BaseIterator.def(
         "value",
         [](Amulet::RocksDB::Iterator& self) {
+            if (!self.is_valid()) {
+                throw std::runtime_error("Iterator is not valid");
+            }
             return py::bytes(self.value());
         },
         py::doc(
