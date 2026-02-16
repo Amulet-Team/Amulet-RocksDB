@@ -87,7 +87,7 @@ if sys.platform == "darwin":
     arch = platform.machine()
     if arch not in ("arm64", "x86_64"):
         raise RuntimeError(f"Unsupported architecture: {arch}")
-    options["bdist_wheel"] = {"plat_name": f"macosx_10_15_{arch}"}
+    options["bdist_wheel"] = {"plat_name": f"macosx_11_0_{arch}"}
 
 
 setup(
