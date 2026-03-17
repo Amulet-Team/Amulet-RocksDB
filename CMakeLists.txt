@@ -56,6 +56,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(zstd)
 
+set(PORTABLE 1 CACHE STRING "" FORCE)
 set(WITH_CORE_TOOLS OFF CACHE BOOL "" FORCE)
 set(WITH_TOOLS OFF CACHE BOOL "" FORCE)
 set(WITH_TRACE_TOOLS OFF CACHE BOOL "" FORCE)
