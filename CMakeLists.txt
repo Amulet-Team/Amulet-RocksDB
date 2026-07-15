@@ -72,7 +72,7 @@ set(ROCKSDB_INSTALL OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(
   rocksdb
   GIT_REPOSITORY https://github.com/Amulet-Team/rocksdb.git
-  GIT_TAG        15ca97a2dd2f9a067c9d3062d9319296555a0ce9
+  GIT_TAG        4153aebf840920ce41dbc47896febbd3020b9d5f
 )
 FetchContent_MakeAvailable(rocksdb)
 set_target_properties(rocksdb PROPERTIES FOLDER "ThirdParty")
