@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 import platform
 from tempfile import TemporaryDirectory
-from typing import TypeAlias, TYPE_CHECKING, Mapping
+from typing import TypeAlias, TYPE_CHECKING
 import sysconfig
 
 from setuptools import setup, Extension, Command
@@ -86,20 +86,10 @@ class CMakeBuild(BuildExt):
 cmdclass["build_ext"] = CMakeBuild  # type: ignore
 
 
-options: Mapping[str, Mapping[str, str]] = {}
-
-if sys.platform == "darwin":
-    arch = platform.machine()
-    if arch not in ("arm64", "x86_64"):
-        raise RuntimeError(f"Unsupported architecture: {arch}")
-    options["bdist_wheel"] = {"plat_name": f"macosx_11_0_{arch}"}
-
-
 setup(
     version=versioneer.get_version(),
     cmdclass=cmdclass,
     ext_modules=[Extension("rocksdb._rocksdb", [])]
     * (not os.environ.get("AMULET_SKIP_COMPILE", None)),
     install_requires=requirements.get_runtime_dependencies(),
-    options=options,
 )
