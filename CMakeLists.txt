@@ -25,7 +25,7 @@ if (MSVC)
     add_definitions("/MP")
 endif()
 
-find_package(Python3 COMPONENTS Interpreter Development)
+find_package(Python3 COMPONENTS Interpreter Development.Module REQUIRED)
 
 # Find libraries
 if (NOT TARGET pybind11::module)
@@ -68,11 +68,12 @@ set(WITH_RUNTIME_DEBUG OFF CACHE BOOL "" FORCE)
 set(WITH_WINDOWS_UTF8_FILENAMES OFF CACHE BOOL "" FORCE)
 set(ROCKSDB_BUILD_SHARED OFF CACHE BOOL "" FORCE)
 set(ROCKSDB_INSTALL OFF CACHE BOOL "" FORCE)
+set(FAIL_ON_WARNINGS OFF CACHE BOOL "" FORCE)
 
 FetchContent_Declare(
   rocksdb
   GIT_REPOSITORY https://github.com/Amulet-Team/rocksdb.git
-  GIT_TAG        15ca97a2dd2f9a067c9d3062d9319296555a0ce9
+  GIT_TAG        4153aebf840920ce41dbc47896febbd3020b9d5f
 )
 FetchContent_MakeAvailable(rocksdb)
 set_target_properties(rocksdb PROPERTIES FOLDER "ThirdParty")
@@ -106,6 +107,7 @@ endforeach()
 
 # Add python extension
 pybind11_add_module(_rocksdb)
+set_target_properties(_rocksdb PROPERTIES CXX_VISIBILITY_PRESET hidden)
 set_target_properties(_rocksdb PROPERTIES FOLDER "Python")
 target_link_libraries(_rocksdb PRIVATE amulet_pybind11_extensions)
 target_link_libraries(_rocksdb PRIVATE amulet_rocksdb)
