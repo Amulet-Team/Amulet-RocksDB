@@ -69,6 +69,7 @@ tag_prefix = ""
 parentdir_prefix = "amulet_rocksdb-"
 
 [tool.cibuildwheel]
+test-sources = ["tests"]
 test-command = "python -m unittest discover -s tests"
 
 [tool.cibuildwheel.linux]
