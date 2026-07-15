@@ -12,7 +12,7 @@ name = "amulet-rocksdb"
 authors = [
     {name = "James Clare"},
 ]
-description = "A pybind11 wrapper for RocksDB."
+description = "A pybind11 wrapper for Facebook's RocksDB."
 dynamic = ["version", "readme", "dependencies"]
 requires-python = ">=3.11"
 classifiers = [
@@ -67,3 +67,12 @@ versionfile_source = "src/amulet/rocksdb/_version.py"
 versionfile_build = "rocksdb/_version.py"
 tag_prefix = ""
 parentdir_prefix = "amulet_rocksdb-"
+
+[tool.cibuildwheel]
+test-command = "python -m unittest discover -s tests"
+
+[tool.cibuildwheel.linux]
+before-all = "yum install -y cmake"
+
+[tool.cibuildwheel.windows]
+repair-wheel-command = "delvewheel repair --ignore-existing --exclude msvcp140.dll -w {dest_dir} -v {wheel}"

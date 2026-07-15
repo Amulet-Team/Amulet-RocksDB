@@ -1,7 +1,7 @@
 import os
 from packaging.version import Version
 
-PYBIND11_REQUIREMENT = "==3.0.1"
+PYBIND11_REQUIREMENT = "==3.0.4"
 AMULET_PYBIND11_EXTENSIONS_REQUIREMENT = "~=1.2.0.0a2"
 
 if os.environ.get("AMULET_PYBIND11_EXTENSIONS_REQUIREMENT", None):

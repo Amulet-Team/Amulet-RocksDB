@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import logging as _logging
 
 from . import _version
@@ -19,3 +17,4 @@ def _init() -> None:
 
 
 _init()
+del _init

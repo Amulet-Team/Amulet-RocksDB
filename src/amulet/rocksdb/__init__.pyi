@@ -250,7 +250,5 @@ class WriteOptions:
     sync: bool
     def __init__(self) -> None: ...
 
-def _init() -> None: ...
-
 __version__: str
 compiler_config: dict
