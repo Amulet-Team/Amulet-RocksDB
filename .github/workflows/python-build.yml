@@ -30,7 +30,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
-        python-version: '3.${{ matrix.cfg.python-version }}'
+        python-version: '3.${{ matrix.python-version }}'
         architecture: ${{ matrix.cfg.architecture }}
 
     - name: Build sdist
